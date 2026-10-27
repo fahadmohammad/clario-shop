@@ -2,7 +2,7 @@
 
 White-label retail platform: an online store (Next.js web + Flutter app) and a supershop POS (.NET desktop) sharing one central inventory, sold to many single-business clients (tenants) in Bangladesh.
 
-**Source of truth for design:** the architecture doc — https://claude.ai/artifact/V7d9eMFQFez4F9RtaTCfY6. When this file and a dotnet-claude-kit skill or rule disagree, **this file wins**.
+**Source of truth for design:** the architecture doc — https://claude.ai/artifact/V7d9eMFQFez4F9RtaTCfY6 (snapshot in `docs/architecture.md` for sessions without Claude Docs access; the live doc wins if they differ). When this file and a dotnet-claude-kit skill or rule disagree, **this file wins**.
 
 ## Tech Stack
 
