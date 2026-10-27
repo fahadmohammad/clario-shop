@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using ClarioShop.Catalog.Contracts.Events;
 using ClarioShop.Catalog.Persistence;
 using ClarioShop.Infrastructure.Messaging;
+using ClarioShop.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -73,6 +74,18 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         await response.EnsureSuccessWithBodyAsync();
         var token = await response.Content.ReadFromJsonAsync<TokenResponse>();
         return token!.AccessToken;
+    }
+
+    /// <summary>A DI scope bound to the tenant, for calling module contracts the way another module would.</summary>
+    public async Task<AsyncServiceScope> CreateTenantScopeAsync(string identifier)
+    {
+        TenantInfo? tenant;
+        await using (var lookup = Services.CreateAsyncScope())
+        {
+            tenant = await lookup.ServiceProvider.GetRequiredService<ITenantStore>().FindByIdentifierAsync(identifier, CancellationToken.None);
+        }
+
+        return Services.GetRequiredService<TenantScopeFactory>().CreateScope(tenant ?? throw new InvalidOperationException($"Tenant {identifier} not found."));
     }
 
     public override async ValueTask DisposeAsync()

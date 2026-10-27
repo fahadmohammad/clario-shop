@@ -5,15 +5,16 @@ White-label retail platform for Bangladeshi businesses: an online store and a su
 - **Architecture doc:** https://claude.ai/artifact/V7d9eMFQFez4F9RtaTCfY6
 - **Working rules for contributors and Claude:** [CLAUDE.md](CLAUDE.md)
 
-## Status: Phase 0 — Foundation
+## Status: Phase 0 done, Phase 1 in progress
 
 | Area | State |
 | --- | --- |
 | Modular monolith on .NET 10, vertical slices, module boundaries enforced by tests | Done |
 | Multi-tenancy: host-name resolution, one PostgreSQL database per tenant, per-tenant migrations | Done |
 | Tenant provisioning API (database, schemas, system roles, owner account) | Done |
-| Identity: staff sign-in (JWT), permission-based RBAC, seeded Owner and Catalog Manager roles | Done (OpenIddict, phone OTP and SSO in Phase 1) |
+| Identity: staff sign-in (JWT), permission-based RBAC, seeded Owner, Catalog Manager and Inventory Clerk roles | Done (OpenIddict, phone OTP and SSO in Phase 1) |
 | Catalog: categories, products, variants with barcodes and sold-by-weight, publish, storefront reads | Done |
+| Inventory: default location per tenant, append-only stock ledger, stock levels with optimistic concurrency, 15-minute checkout reservations, purchase receipts, adjustments with reason codes | Done (transfers, POS sales and the nightly drift check follow) |
 | Transactional outbox and inbox, RabbitMQ transport (in-process fallback) | Done |
 | Aspire AppHost: PostgreSQL, Redis, RabbitMQ, generated secrets | Done |
 | CI: build (warnings as errors), format check, unit, architecture and integration tests | Done |

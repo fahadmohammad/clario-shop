@@ -6,4 +6,6 @@ public static class SystemRoles
     public const string Owner = "Owner";
 
     public const string CatalogManager = "Catalog Manager";
+
+    public const string InventoryClerk = "Inventory Clerk";
 }

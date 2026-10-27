@@ -14,6 +14,7 @@ internal sealed class SystemRoleSynchronizer(IdentityDbContext db, PermissionCat
         {
             [SystemRoles.Owner] = catalog.All.Select(permission => permission.Name),
             [SystemRoles.CatalogManager] = catalog.ForModule("catalog"),
+            [SystemRoles.InventoryClerk] = catalog.ForModule("inventory"),
         };
 
         var existing = await db.Roles.Include(role => role.Permissions)
