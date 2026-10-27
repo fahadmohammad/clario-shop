@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <UserSecretsId>clarioshop-api-6f1c2a8e</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+    <PackageReference Include="Aspire.RabbitMQ.Client" />
+    <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClarioShop.ServiceDefaults\ClarioShop.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\ClarioShop.Infrastructure\ClarioShop.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Platform\ClarioShop.Platform\ClarioShop.Platform.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\ClarioShop.Identity\ClarioShop.Identity.csproj" />
+    <ProjectReference Include="..\..\Modules\Catalog\ClarioShop.Catalog\ClarioShop.Catalog.csproj" />
+  </ItemGroup>
+</Project>
