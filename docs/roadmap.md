@@ -20,7 +20,7 @@ choice is configuration later, never a blocker now.
 ## Steps
 
 ### 1. customers
-- [ ] **Customers module**
+- [~] **Customers module**
   - `Customer` (matched by normalized Bangladeshi phone number, unique), `Address` (multiple per customer, one default).
   - Contracts: `ICustomerDirectory.FindOrCreateByPhoneAsync(phone, name)` and `GetAsync(id)` for checkout; `CustomerCreated` event.
   - Staff endpoints: search/list customers, view one with addresses. Permissions `customers.view`, `customers.edit`.
