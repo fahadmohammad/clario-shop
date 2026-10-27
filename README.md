@@ -15,6 +15,7 @@ White-label retail platform for Bangladeshi businesses: an online store and a su
 | Identity: staff sign-in (JWT), permission-based RBAC, seeded Owner, Catalog Manager and Inventory Clerk roles | Done (OpenIddict, phone OTP and SSO in Phase 1) |
 | Catalog: categories, products, variants with barcodes and sold-by-weight, publish, storefront reads | Done |
 | Inventory: default location per tenant, append-only stock ledger, stock levels with optimistic concurrency, 15-minute checkout reservations, purchase receipts, adjustments with reason codes | Done (transfers, POS sales and the nightly drift check follow) |
+| Customers: one customer per Bangladeshi mobile number (any format), concurrency-safe find-or-create for checkout, addresses with one default, staff search | Done (loyalty later) |
 | Transactional outbox and inbox, RabbitMQ transport (in-process fallback) | Done |
 | Aspire AppHost: PostgreSQL, Redis, RabbitMQ, generated secrets | Done |
 | CI: build (warnings as errors), format check, unit, architecture and integration tests | Done |
