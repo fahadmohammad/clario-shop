@@ -117,5 +117,8 @@ Roslyn MCP tools (`cwm-roslyn-navigator`) are configured in `.mcp.json`; install
 
 ## Workflow
 
+- **Roadmap:** `docs/roadmap.md` is the ordered Phase 1 work queue, one step per PR. The `roadmap-runner` skill (`.claude/skills/roadmap-runner/SKILL.md`) fixes and merges the open step's PR, then starts the next step; a scheduled task runs it.
+- Fresh containers: `bash scripts/cloud-setup.sh` (local PostgreSQL, dotnet-ef), then `bash scripts/verify.sh` runs the same checks as CI.
+
 - Plan before any change touching 3+ files; build and test before claiming done.
 - Commits: conventional prefixes (`feat:`, `fix:`, `chore:` …), feature branches, PRs into `main`.

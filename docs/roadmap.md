@@ -1,0 +1,117 @@
+# Clario Shop — Phase 1 Roadmap
+
+The ordered work queue for the backend of the sellable MVP (Phase 1 in the
+[architecture doc](https://claude.ai/artifact/V7d9eMFQFez4F9RtaTCfY6)). The roadmap runner
+(`.claude/skills/roadmap-runner/SKILL.md`) works through it top to bottom, **one step per pull request**:
+it fixes and merges the open step's PR first, then starts the first unchecked step.
+
+How the boxes work:
+
+- `- [ ]` not started · `- [~]` in progress (its PR is open) · `- [x]` done (its PR is merged) · `- [!]` blocked (needs a human; see the note under the step)
+- A step's own PR flips its box to `[x]` and adds the PR link, so `main` always shows what is done.
+- To reorder, add, split or skip steps, edit this file on `main`; the runner always reads the current version.
+
+Ground rules for every step: follow `CLAUDE.md` and the architecture doc; ship tests with the code (unit tests on
+domain rules, integration tests through HTTP or the module's Contracts, architecture tests for any new module);
+leave `scripts/verify.sh` green. Where a vendor is not chosen yet (SMS gateway, email provider, object storage,
+couriers), build against an interface with a logging/fake implementation and a typed options section, so the
+choice is configuration later, never a blocker now.
+
+## Steps
+
+### 1. customers
+- [ ] **Customers module**
+  - `Customer` (matched by normalized Bangladeshi phone number, unique), `Address` (multiple per customer, one default).
+  - Contracts: `ICustomerDirectory.FindOrCreateByPhoneAsync(phone, name)` and `GetAsync(id)` for checkout; `CustomerCreated` event.
+  - Staff endpoints: search/list customers, view one with addresses. Permissions `customers.view`, `customers.edit`.
+  - Done when: phone normalization unit-tested (`01712-345678`, `+8801712345678`, `8801712345678` are one customer), find-or-create is idempotent under concurrency, module is in the architecture tests.
+
+### 2. ordering-checkout
+- [ ] **Ordering module: cart and cash-on-delivery checkout**
+  - `Cart`/`CartItem` (anonymous cart id for guests), add/update/remove items; prices always read from `ICatalogQueries` (only sellable variants).
+  - `POST /api/ordering/checkout` (COD): finds or creates the customer via `ICustomerDirectory`, creates `Order` in `Placed` with `OrderLine`s that copy name, SKU and price, reserves stock via `IInventoryReservations` (insufficient stock → 409, nothing persisted), writes `OrderStatusHistory`, publishes `OrderPlaced`.
+  - Order number per tenant (readable, sequential, e.g. `CS-000123`).
+  - Done when: integration tests cover happy path, out-of-stock, unpublished variant, price snapshot unaffected by later price changes, idempotent checkout (same cart twice → one order).
+
+### 3. ordering-lifecycle
+- [ ] **Order lifecycle and stock hand-off**
+  - Staff transitions `Placed → Confirmed → Packed → Shipped → Delivered`, plus `Cancelled` (before Shipped) and `Returned`; every change in `OrderStatusHistory`; invalid transitions are 409.
+  - Events `OrderConfirmed`, `OrderCancelled`, `OrderShipped`, `OrderDelivered`. Inventory consumes `OrderConfirmed` (commit reservation → `OnlineSale` movements) and `OrderCancelled` (release).
+  - Confirming after the 15-minute reservation expired: Ordering re-reserves through `IInventoryReservations` before confirming; if stock is gone the confirm fails with 409 and a clear message.
+  - Permissions `orders.view`, `orders.manage`; seeded role **Order Handler**.
+  - Done when: end-to-end test place → confirm → stock leaves the ledger; cancel → stock returns; event consumers idempotent.
+
+### 4. settings
+- [ ] **Settings module (per-tenant configuration)**
+  - Store profile (name, contact phone/email, address), branding/theme tokens (colours, radius, fonts, logo URL), invoice prefix, VAT rate, currency formatting, languages.
+  - `DeliveryZone` (name, areas, fee, free-delivery threshold).
+  - Contracts `ISettingsQueries` (cached with `HybridCache`, invalidated on change); public anonymous `GET /api/settings/storefront` for theme tokens.
+  - Permission `settings.edit`.
+
+### 5. checkout-pricing
+- [ ] **Delivery fees and VAT on orders**
+  - Checkout takes a delivery zone, adds the zone fee (or free over threshold) and VAT from `ISettingsQueries`; order stores subtotal, delivery fee, VAT, total (all `numeric(18,2)`, rounding rules unit-tested).
+  - Coupon groundwork is out of scope.
+
+### 6. shopper-auth
+- [ ] **OpenIddict token server with phone OTP**
+  - Replace the Phase 0 HMAC issuer with OpenIddict (open source) in the Identity module: staff email + password flow keeps working, refresh tokens (rotating), access tokens 15 min.
+  - Shopper sign-in with phone + OTP: 6 digits, 3-minute expiry, 5 attempts, rate limited per phone and per IP (Redis via HybridCache/distributed cache; in-memory fallback in tests). OTP sent through an `ISmsSender` with a logging implementation.
+  - Shopper accounts link to the Customers module by phone (via Contracts), never by reading its tables.
+  - Done when: existing integration tests still pass on the new token server; OTP flow, expiry, attempt limit and rate limit are tested.
+
+### 7. customer-accounts
+- [ ] **Shopper self-service**
+  - Signed-in shopper: my profile, my addresses (CRUD), my orders (list and detail), checkout using a saved address.
+  - Permissions/policies so a shopper only ever sees their own data.
+
+### 8. payments-cod
+- [ ] **Payments module: COD collection**
+  - `Payment`, `PaymentAttempt`; record cash collected on delivery (staff/rider endpoint); publishes `PaymentSucceeded`; Ordering shows payment status.
+  - One order may have several payments (part COD, part prepaid) — model it now.
+  - Permission `payments.manage`.
+
+### 9. payments-sslcommerz
+- [ ] **Prepaid checkout with SSLCommerz**
+  - Prepaid orders start in `PendingPayment`; Payments creates a gateway session and returns the redirect URL.
+  - IPN webhook endpoint (anonymous, tenant from host): store raw payload in `GatewayWebhookLog`, validate with the gateway validation API (never trust the redirect), then `PaymentSucceeded` / `PaymentFailed`. Ordering confirms or cancels; Inventory commits or releases.
+  - Per-tenant merchant credentials in Settings, encrypted with the Data Protection API.
+  - Reconciliation background job every 15 minutes for missed webhooks.
+  - Gateway behind `IPaymentGateway`; tests use a fake gateway (no network).
+
+### 10. notifications
+- [ ] **Notifications module**
+  - Consumes `OrderPlaced`, `OrderConfirmed`, `OrderShipped`, `OrderDelivered`; sends SMS (`ISmsSender`) and email (`IEmailSender`) from per-tenant templates (Bangla and English), logging implementations by default.
+  - `NotificationLog` for audit and retries; idempotent per event.
+
+### 11. reporting
+- [ ] **Basic reports**
+  - Reporting module builds its own projections from events (never reads other schemas): daily sales totals, orders by status, top variants.
+  - Inventory reports via an `IInventoryQueries` contract: stock value at cost, low and negative stock.
+  - Permission `reports.sales.view`, `reports.inventory.view`.
+
+### 12. inventory-followups
+- [ ] **Inventory completeness**
+  - Nightly drift check: recompute `StockLevel` from the ledger, record and alert on differences.
+  - Stock transfers between locations (`TransferOut`/`TransferIn`, one document).
+  - Negative-stock alerts surfaced through an event Notifications can consume.
+  - `AuditLog` (who, what, before/after, when) for adjustments, price changes and role changes — a small per-module table, not a shared one.
+
+### 13. catalog-completion
+- [ ] **Catalog for a real storefront**
+  - `Brand`, `ProductImage` (upload via an `IFileStorage` abstraction for S3-compatible storage; local-disk implementation for dev/tests), attributes and values, edit/archive product and variant, price changes publishing `ProductPriceChanged`.
+  - Inventory tracks variants added after creation (consume a `VariantAdded` event).
+
+### 14. plans-and-scopes
+- [ ] **Plan gating and location scope**
+  - Platform: tenant plan (Online, POS, Retail Suite) with module feature flags; endpoints of a module outside the plan return 403 with a clear reason.
+  - Identity `UserLocation`: managers limited to their locations' stock, orders and reports.
+
+### 15. search
+- [ ] **Product search with Meilisearch**
+  - Per-tenant index fed from Catalog events; typo-tolerant storefront search endpoint with category/brand filters; falls back to the database search when Meilisearch is not configured. AppHost adds Meilisearch.
+
+### 16. phase1-hardening
+- [ ] **Phase 1 hardening**
+  - OpenAPI descriptions complete for every endpoint; rate limits on public endpoints; health checks for outbox lag; an end-to-end integration test of the full money path (browse → cart → checkout → pay → confirm → stock change → notification).
+  - Update README status table for Phase 1.

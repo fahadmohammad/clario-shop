@@ -72,6 +72,7 @@ appsettings.*.json
 ## Claude Code — ignore session files but track rules
 .claude/*
 !.claude/rules/
+!.claude/skills/
 mcp/CWM.RoslynNavigator/binverify/CWM.RoslynNavigator.deps.json
 mcp/CWM.RoslynNavigator/binverify/CWM.RoslynNavigator.dll
 mcp/CWM.RoslynNavigator/binverify/CWM.RoslynNavigator.dll.config
