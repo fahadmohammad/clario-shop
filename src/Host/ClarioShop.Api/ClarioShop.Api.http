@@ -46,3 +46,37 @@ GET {{api}}/api/catalog/products?search=rice
 
 ###
 GET {{api}}/api/catalog/products/chinigura-aromatic-rice
+
+### Inventory: locations (the default one is created with the tenant)
+GET {{api}}/api/inventory/locations
+Authorization: Bearer {{token.response.body.accessToken}}
+
+### Receive goods from a supplier into the default location
+POST {{api}}/api/inventory/receipts
+Authorization: Bearer {{token.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "supplierName": "Pran Foods",
+  "supplierReference": "CH-1001",
+  "lines": [ { "variantId": "<variant id>", "quantity": 24, "unitCost": 140 } ]
+}
+
+### Write off damaged stock (reasons: Damaged, Expired, Theft, CountCorrection, Other)
+POST {{api}}/api/inventory/adjustments
+Authorization: Bearer {{token.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "reason": "Damaged",
+  "note": "Torn bags",
+  "lines": [ { "variantId": "<variant id>", "quantityChange": -2 } ]
+}
+
+### Stock levels and the ledger
+GET {{api}}/api/inventory/stock?search=rice
+Authorization: Bearer {{token.response.body.accessToken}}
+
+###
+GET {{api}}/api/inventory/movements
+Authorization: Bearer {{token.response.body.accessToken}}

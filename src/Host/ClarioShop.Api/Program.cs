@@ -5,6 +5,7 @@ using ClarioShop.Infrastructure.Endpoints;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Security;
 using ClarioShop.Infrastructure.Tenancy;
+using ClarioShop.Inventory;
 using ClarioShop.Platform;
 using Scalar.AspNetCore;
 
@@ -38,7 +39,8 @@ builder.Services.AddClarioCors(builder.Configuration);
 builder.Services
     .AddPlatformModule(builder.Configuration)
     .AddIdentityModule()
-    .AddCatalogModule();
+    .AddCatalogModule()
+    .AddInventoryModule(builder.Configuration);
 
 var app = builder.Build();
 
