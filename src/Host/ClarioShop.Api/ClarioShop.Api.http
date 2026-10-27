@@ -1,0 +1,48 @@
+# Requests against the demo tenant (seeded in Development at localhost).
+# Get @password from the Aspire dashboard parameter "demo-owner-password".
+@api = http://localhost:5080
+@password = change-me
+
+### Sign in as the demo owner
+# @name token
+POST {{api}}/api/identity/token
+Content-Type: application/json
+
+{ "email": "owner@demo.local", "password": "{{password}}" }
+
+### Who am I
+GET {{api}}/api/identity/me
+Authorization: Bearer {{token.response.body.accessToken}}
+
+### Create a category
+POST {{api}}/api/catalog/categories
+Authorization: Bearer {{token.response.body.accessToken}}
+Content-Type: application/json
+
+{ "name": "Rice & Grains" }
+
+### Create a product with two variants
+# @name product
+POST {{api}}/api/catalog/products
+Authorization: Bearer {{token.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Chinigura Aromatic Rice",
+  "description": "Premium aromatic rice from Dinajpur.",
+  "brand": "Pran",
+  "variants": [
+    { "sku": "RICE-CHINI-1KG", "name": "1 kg", "price": 165, "barcodes": ["8941100500123"] },
+    { "sku": "RICE-CHINI-5KG", "name": "5 kg", "price": 790, "compareAtPrice": 825 }
+  ]
+}
+
+### Publish it
+POST {{api}}/api/catalog/products/{{product.response.body.id}}/publish
+Authorization: Bearer {{token.response.body.accessToken}}
+
+### Storefront: list and view (no token)
+GET {{api}}/api/catalog/products?search=rice
+
+###
+GET {{api}}/api/catalog/products/chinigura-aromatic-rice

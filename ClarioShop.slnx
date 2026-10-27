@@ -1,0 +1,29 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/ClarioShop.SharedKernel/ClarioShop.SharedKernel.csproj" />
+    <Project Path="src/BuildingBlocks/ClarioShop.Infrastructure/ClarioShop.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Host/">
+    <Project Path="src/Host/ClarioShop.Api/ClarioShop.Api.csproj" />
+    <Project Path="src/Host/ClarioShop.AppHost/ClarioShop.AppHost.csproj" />
+    <Project Path="src/Host/ClarioShop.ServiceDefaults/ClarioShop.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Catalog/">
+    <Project Path="src/Modules/Catalog/ClarioShop.Catalog.Contracts/ClarioShop.Catalog.Contracts.csproj" />
+    <Project Path="src/Modules/Catalog/ClarioShop.Catalog/ClarioShop.Catalog.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Identity/">
+    <Project Path="src/Modules/Identity/ClarioShop.Identity.Contracts/ClarioShop.Identity.Contracts.csproj" />
+    <Project Path="src/Modules/Identity/ClarioShop.Identity/ClarioShop.Identity.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Platform/">
+    <Project Path="src/Modules/Platform/ClarioShop.Platform/ClarioShop.Platform.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ClarioShop.ArchitectureTests/ClarioShop.ArchitectureTests.csproj" />
+    <Project Path="tests/ClarioShop.Catalog.Tests/ClarioShop.Catalog.Tests.csproj" />
+    <Project Path="tests/ClarioShop.IntegrationTests/ClarioShop.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

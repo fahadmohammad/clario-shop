@@ -1,0 +1,78 @@
+# Clario Shop
+
+White-label retail platform for Bangladeshi businesses: an online store and a supershop POS sharing one central inventory, sold to many clients (tenants), each with its own branding, domain and database.
+
+- **Architecture doc:** https://claude.ai/artifact/V7d9eMFQFez4F9RtaTCfY6
+- **Working rules for contributors and Claude:** [CLAUDE.md](CLAUDE.md)
+
+## Status: Phase 0 — Foundation
+
+| Area | State |
+| --- | --- |
+| Modular monolith on .NET 10, vertical slices, module boundaries enforced by tests | Done |
+| Multi-tenancy: host-name resolution, one PostgreSQL database per tenant, per-tenant migrations | Done |
+| Tenant provisioning API (database, schemas, system roles, owner account) | Done |
+| Identity: staff sign-in (JWT), permission-based RBAC, seeded Owner and Catalog Manager roles | Done (OpenIddict, phone OTP and SSO in Phase 1) |
+| Catalog: categories, products, variants with barcodes and sold-by-weight, publish, storefront reads | Done |
+| Transactional outbox and inbox, RabbitMQ transport (in-process fallback) | Done |
+| Aspire AppHost: PostgreSQL, Redis, RabbitMQ, generated secrets | Done |
+| CI: build (warnings as errors), format check, unit, architecture and integration tests | Done |
+
+## Run it locally
+
+Requirements: .NET 10 SDK and Docker.
+
+```bash
+dotnet run --project src/Host/ClarioShop.AppHost
+```
+
+The Aspire dashboard opens with PostgreSQL, Redis, RabbitMQ and the API. In Development the API:
+
+- migrates the platform database and every tenant database,
+- seeds a **demo shop** at `localhost` and `demo.localhost` with owner `owner@demo.local`. The password is the `demo-owner-password` parameter in the dashboard's **Parameters** tab,
+- serves the API reference at `/scalar`.
+
+`src/Host/ClarioShop.Api/ClarioShop.Api.http` walks through signing in and creating, publishing and browsing a product.
+
+### Without Docker
+
+Point the API at any PostgreSQL server:
+
+```bash
+export ConnectionStrings__postgres="Host=localhost;Username=postgres;Password=postgres"
+export ConnectionStrings__platformdb="Host=localhost;Username=postgres;Password=postgres;Database=clarioshop_platform"
+export Platform__DemoTenant__OwnerPassword="choose-a-password-1"
+dotnet run --project src/Host/ClarioShop.Api
+```
+
+Without RabbitMQ the outbox delivers events in-process; without Redis, caching is in-memory only.
+
+## Tests
+
+```bash
+dotnet test --solution ClarioShop.slnx
+```
+
+Integration tests start PostgreSQL with Testcontainers. To use an existing server instead:
+
+```bash
+CLARIOSHOP_TEST_POSTGRES="Host=localhost;Username=postgres;Password=postgres" dotnet test --solution ClarioShop.slnx
+```
+
+## Creating a client shop
+
+```http
+POST /api/platform/tenants
+X-Platform-Key: <platform-api-key parameter>
+
+{
+  "identifier": "rahman-store",
+  "name": "Rahman Super Store",
+  "hosts": ["shop.rahmanstore.com.bd"],
+  "ownerEmail": "owner@rahmanstore.com.bd",
+  "ownerName": "Abdur Rahman",
+  "ownerPassword": "a-strong-password-1"
+}
+```
+
+This creates the `clarioshop_rahman_store` database with every module's schema, the system roles and the owner account. Requests to `shop.rahmanstore.com.bd` are then served from that database.

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ClarioShop.SharedKernel</RootNamespace>
+  </PropertyGroup>
+</Project>
