@@ -2,7 +2,7 @@
 
 White-label retail platform for Bangladeshi businesses: an online store and a supershop POS sharing one central inventory, sold to many clients (tenants), each with its own branding, domain and database.
 
-- **Architecture doc:** https://claude.ai/artifact/V7d9eMFQFez4F9RtaTCfY6
+- **Architecture doc:** https://claude.ai/artifact/V7d9eMFQFez4F9RtaTCfY6 (snapshot: [docs/architecture.md](docs/architecture.md))
 - **Working rules for contributors and Claude:** [CLAUDE.md](CLAUDE.md)
 
 ## Status: Phase 0 done, Phase 1 in progress

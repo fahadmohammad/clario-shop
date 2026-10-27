@@ -17,8 +17,9 @@ Repository: `fahadmohammad/clario-shop`, base branch `main`. Roadmap PRs use bra
 
 1. Read `CLAUDE.md`, `.claude/rules/*.md` and `docs/roadmap.md` on the latest `origin/main`.
 2. Run `bash scripts/cloud-setup.sh` (local PostgreSQL + dotnet-ef), then `export PATH="$PATH:$HOME/.dotnet/tools"`.
-3. Read the sections of the architecture doc that the step touches (link in `CLAUDE.md`; it is a Claude Docs
-   document — read it through the Claude Docs connector, not by fetching the URL).
+3. Read the sections of the architecture doc that the step touches: `docs/architecture.md` is a snapshot of it.
+   If the Claude Docs connector is available, prefer the live doc (link in `CLAUDE.md`; read it through the
+   connector, not by fetching the URL) — where the two differ, the live doc wins.
 
 ## 1. Handle the open roadmap PR (previous step)
 
