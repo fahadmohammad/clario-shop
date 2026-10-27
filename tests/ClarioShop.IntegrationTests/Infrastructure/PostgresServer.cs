@@ -23,7 +23,8 @@ public sealed class PostgresServer : IAsyncDisposable
             return;
         }
 
-        container = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        // Every test tenant is its own database with its own connection pool; the default 100 connections run out.
+        container = new PostgreSqlBuilder("postgres:17-alpine").WithCommand("-c", "max_connections=500").Build();
         await container.StartAsync();
         ConnectionString = container.GetConnectionString();
     }

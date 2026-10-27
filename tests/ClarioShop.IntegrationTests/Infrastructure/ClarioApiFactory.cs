@@ -2,6 +2,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using ClarioShop.Catalog.Contracts.Events;
 using ClarioShop.Catalog.Persistence;
+using ClarioShop.Customers.Contracts.Events;
+using ClarioShop.Customers.Persistence;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Hosting;
@@ -97,10 +99,12 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        var platformDb = new NpgsqlConnectionStringBuilder(postgres.ConnectionString) { Database = $"clarioshop_platform_{runId}" }.ConnectionString;
+        var platformDb = new NpgsqlConnectionStringBuilder(postgres.ConnectionString) { ConnectionIdleLifetime = 2, ConnectionPruningInterval = 1, Database = $"clarioshop_platform_{runId}" }.ConnectionString;
 
         builder.UseEnvironment("Testing");
-        builder.UseSetting("ConnectionStrings:postgres", postgres.ConnectionString);
+        // Tenant connection strings inherit these pool settings; idle connections from concurrent tests close quickly.
+        var server = new NpgsqlConnectionStringBuilder(postgres.ConnectionString) { ConnectionIdleLifetime = 2, ConnectionPruningInterval = 1 }.ConnectionString;
+        builder.UseSetting("ConnectionStrings:postgres", server);
         builder.UseSetting("ConnectionStrings:platformdb", platformDb);
         builder.UseSetting("Platform:ApiKey", PlatformKey);
         builder.UseSetting("Platform:MigrateOnStartup", "true");
@@ -113,6 +117,7 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         {
             services.AddSingleton(Events);
             services.AddIntegrationEventHandler<ProductCreated, RecordingProductCreatedHandler, CatalogDbContext>("tests");
+            services.AddIntegrationEventHandler<CustomerCreated, RecordingCustomerCreatedHandler, CustomersDbContext>("tests");
         });
     }
 

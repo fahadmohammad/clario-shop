@@ -14,6 +14,10 @@
     <Project Path="src/Modules/Catalog/ClarioShop.Catalog.Contracts/ClarioShop.Catalog.Contracts.csproj" />
     <Project Path="src/Modules/Catalog/ClarioShop.Catalog/ClarioShop.Catalog.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Customers/">
+    <Project Path="src/Modules/Customers/ClarioShop.Customers.Contracts/ClarioShop.Customers.Contracts.csproj" />
+    <Project Path="src/Modules/Customers/ClarioShop.Customers/ClarioShop.Customers.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Identity/">
     <Project Path="src/Modules/Identity/ClarioShop.Identity.Contracts/ClarioShop.Identity.Contracts.csproj" />
     <Project Path="src/Modules/Identity/ClarioShop.Identity/ClarioShop.Identity.csproj" />
@@ -28,6 +32,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/ClarioShop.ArchitectureTests/ClarioShop.ArchitectureTests.csproj" />
     <Project Path="tests/ClarioShop.Catalog.Tests/ClarioShop.Catalog.Tests.csproj" />
+    <Project Path="tests/ClarioShop.Customers.Tests/ClarioShop.Customers.Tests.csproj" />
     <Project Path="tests/ClarioShop.IntegrationTests/ClarioShop.IntegrationTests.csproj" />
     <Project Path="tests/ClarioShop.Inventory.Tests/ClarioShop.Inventory.Tests.csproj" />
   </Folder>

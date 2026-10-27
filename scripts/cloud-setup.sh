@@ -11,6 +11,15 @@ if command -v service >/dev/null 2>&1 && [ -d /etc/postgresql ]; then
     sleep 1
   done
   su postgres -c "psql -q -c \"ALTER USER postgres PASSWORD 'postgres';\""
+  # Every test tenant is its own database with its own connection pool; the default 100 connections run out.
+  if [ "$(su postgres -c "psql -tAq -c 'SHOW max_connections;'")" -lt 500 ]; then
+    su postgres -c "psql -q -c 'ALTER SYSTEM SET max_connections = 500;'"
+    service postgresql restart >/dev/null
+    for _ in $(seq 1 30); do
+      su postgres -c "pg_isready -q" && break
+      sleep 1
+    done
+  fi
   echo "PostgreSQL ready: export CLARIOSHOP_TEST_POSTGRES='Host=localhost;Username=postgres;Password=postgres'"
 else
   echo "No local PostgreSQL found; integration tests will use Testcontainers (needs Docker)."

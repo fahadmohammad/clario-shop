@@ -1,6 +1,8 @@
 using System.Reflection;
 using ClarioShop.Catalog;
 using ClarioShop.Catalog.Contracts;
+using ClarioShop.Customers;
+using ClarioShop.Customers.Contracts;
 using ClarioShop.Identity;
 using ClarioShop.Identity.Contracts;
 using ClarioShop.Infrastructure.Endpoints;
@@ -18,6 +20,7 @@ public sealed class ModuleBoundaryTests
     private static readonly Dictionary<string, Assembly> Modules = new()
     {
         ["ClarioShop.Catalog"] = typeof(CatalogModule).Assembly,
+        ["ClarioShop.Customers"] = typeof(CustomersModule).Assembly,
         ["ClarioShop.Identity"] = typeof(IdentityModule).Assembly,
         ["ClarioShop.Inventory"] = typeof(InventoryModule).Assembly,
         ["ClarioShop.Platform"] = typeof(PlatformModule).Assembly,
@@ -26,6 +29,7 @@ public sealed class ModuleBoundaryTests
     private static readonly Dictionary<string, Assembly> Contracts = new()
     {
         ["ClarioShop.Catalog.Contracts"] = typeof(ICatalogQueries).Assembly,
+        ["ClarioShop.Customers.Contracts"] = typeof(ICustomerDirectory).Assembly,
         ["ClarioShop.Identity.Contracts"] = typeof(SystemRoles).Assembly,
         ["ClarioShop.Inventory.Contracts"] = typeof(IInventoryReservations).Assembly,
     };
@@ -66,6 +70,7 @@ public sealed class ModuleBoundaryTests
                 "Microsoft.AspNetCore",
                 "ClarioShop.Infrastructure",
                 "ClarioShop.Catalog",
+                "ClarioShop.Customers",
                 "ClarioShop.Identity",
                 "ClarioShop.Inventory",
                 "ClarioShop.Platform")
@@ -79,7 +84,7 @@ public sealed class ModuleBoundaryTests
     {
         var result = Types.InAssembly(typeof(IEndpointGroup).Assembly)
             .ShouldNot()
-            .HaveDependencyOnAny("ClarioShop.Catalog", "ClarioShop.Identity", "ClarioShop.Inventory", "ClarioShop.Platform")
+            .HaveDependencyOnAny("ClarioShop.Catalog", "ClarioShop.Customers", "ClarioShop.Identity", "ClarioShop.Inventory", "ClarioShop.Platform")
             .GetResult();
 
         Assert.True(result.IsSuccessful, Describe(result));
@@ -87,6 +92,7 @@ public sealed class ModuleBoundaryTests
 
     [Theory]
     [InlineData("ClarioShop.Catalog")]
+    [InlineData("ClarioShop.Customers")]
     [InlineData("ClarioShop.Identity")]
     [InlineData("ClarioShop.Inventory")]
     [InlineData("ClarioShop.Platform")]
@@ -103,6 +109,7 @@ public sealed class ModuleBoundaryTests
 
     [Theory]
     [InlineData("ClarioShop.Catalog")]
+    [InlineData("ClarioShop.Customers")]
     [InlineData("ClarioShop.Identity")]
     [InlineData("ClarioShop.Inventory")]
     [InlineData("ClarioShop.Platform")]

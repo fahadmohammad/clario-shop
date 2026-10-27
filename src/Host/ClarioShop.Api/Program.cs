@@ -1,5 +1,6 @@
 using ClarioShop.Api.Setup;
 using ClarioShop.Catalog;
+using ClarioShop.Customers;
 using ClarioShop.Identity;
 using ClarioShop.Infrastructure.Endpoints;
 using ClarioShop.Infrastructure.Messaging;
@@ -40,7 +41,8 @@ builder.Services
     .AddPlatformModule(builder.Configuration)
     .AddIdentityModule()
     .AddCatalogModule()
-    .AddInventoryModule(builder.Configuration);
+    .AddInventoryModule(builder.Configuration)
+    .AddCustomersModule();
 
 var app = builder.Build();
 

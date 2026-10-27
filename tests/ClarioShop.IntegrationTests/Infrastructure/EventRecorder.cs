@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using ClarioShop.Catalog.Contracts.Events;
+using ClarioShop.Customers.Contracts.Events;
 using ClarioShop.SharedKernel.Messaging;
 using ClarioShop.SharedKernel.Tenancy;
 
@@ -36,6 +37,15 @@ public sealed class EventRecorder
 internal sealed class RecordingProductCreatedHandler(EventRecorder recorder, ITenantContext tenant) : IIntegrationEventHandler<ProductCreated>
 {
     public Task HandleAsync(ProductCreated integrationEvent, CancellationToken cancellationToken)
+    {
+        recorder.Record(tenant.TenantId, integrationEvent);
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class RecordingCustomerCreatedHandler(EventRecorder recorder, ITenantContext tenant) : IIntegrationEventHandler<CustomerCreated>
+{
+    public Task HandleAsync(CustomerCreated integrationEvent, CancellationToken cancellationToken)
     {
         recorder.Record(tenant.TenantId, integrationEvent);
         return Task.CompletedTask;
