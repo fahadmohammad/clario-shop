@@ -15,7 +15,7 @@ internal sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransfor
             Type = SecuritySchemeType.Http,
             Scheme = "bearer",
             BearerFormat = "JWT",
-            Description = "Access token from POST /api/identity/token",
+            Description = "access_token from POST /api/identity/token (OAuth 2.0, form-encoded)",
         };
 
         return Task.CompletedTask;

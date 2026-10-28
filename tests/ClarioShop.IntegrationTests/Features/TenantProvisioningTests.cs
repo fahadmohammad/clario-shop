@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using ClarioShop.IntegrationTests.Infrastructure;
 
 namespace ClarioShop.IntegrationTests.Features;
@@ -61,14 +62,15 @@ public sealed class TenantProvisioningTests(ClarioApiFactory api)
     }
 
     [Fact]
-    public async Task SignIn_WrongPassword_ReturnsUnauthorized()
+    public async Task SignIn_WrongPassword_ReturnsInvalidGrant()
     {
         var tenant = await api.CreateTenantAsync("pwd");
         using var client = api.CreateTenantClient(tenant.Identifier);
 
-        var response = await client.PostAsJsonAsync("/api/identity/token", new { email = tenant.OwnerEmail, password = "Wrong-pass-999" }, TestContext.Current.CancellationToken);
+        var response = await client.PostAsync("/api/identity/token", ClarioApiFactory.PasswordGrant(tenant.OwnerEmail, "Wrong-pass-999"), TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("invalid_grant", (await response.Content.ReadFromJsonAsync<OAuthError>(TestContext.Current.CancellationToken))!.Error);
     }
 
     [Fact]
@@ -80,13 +82,15 @@ public sealed class TenantProvisioningTests(ClarioApiFactory api)
 
         for (var attempt = 0; attempt < 11; attempt++)
         {
-            var response = await client.PostAsJsonAsync("/api/identity/token", new { email = tenant.OwnerEmail, password = "Wrong-pass-999" }, TestContext.Current.CancellationToken);
+            var response = await client.PostAsync("/api/identity/token", ClarioApiFactory.PasswordGrant(tenant.OwnerEmail, "Wrong-pass-999"), TestContext.Current.CancellationToken);
             statuses.Add(response.StatusCode);
         }
 
-        Assert.All(statuses.Take(10), status => Assert.Equal(HttpStatusCode.Unauthorized, status));
+        Assert.All(statuses.Take(10), status => Assert.Equal(HttpStatusCode.BadRequest, status));
         Assert.Equal(HttpStatusCode.TooManyRequests, statuses[^1]);
     }
+
+    private sealed record OAuthError([property: JsonPropertyName("error")] string Error);
 
     private sealed record MeResponse(Guid Id, string Email, string FullName, IReadOnlyList<string> Permissions);
 }

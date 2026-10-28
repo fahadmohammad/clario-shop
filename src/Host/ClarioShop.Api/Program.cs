@@ -34,14 +34,13 @@ builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecu
 
 builder.Services.AddClarioTenancy(builder.Configuration);
 builder.Services.AddClarioMessaging(builder.Configuration, useRabbitMq);
-builder.Services.AddClarioAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddPermissionAuthorization();
 builder.Services.AddClarioRateLimiting(builder.Configuration);
 builder.Services.AddClarioCors(builder.Configuration);
 
 builder.Services
     .AddPlatformModule(builder.Configuration)
-    .AddIdentityModule()
+    .AddIdentityModule(builder.Configuration, builder.Environment)
     .AddCatalogModule()
     .AddInventoryModule(builder.Configuration)
     .AddCustomersModule()

@@ -3,7 +3,6 @@
     <UserSecretsId>clarioshop-api-6f1c2a8e</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Scalar.AspNetCore" />
     <PackageReference Include="Aspire.RabbitMQ.Client" />

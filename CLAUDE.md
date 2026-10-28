@@ -76,7 +76,7 @@ public static class CreateProduct
 
 ## Auth and RBAC
 
-- JWT bearer tokens. Phase 0 issues them from the Identity module (`POST /api/identity/token`); Phase 1 moves to **OpenIddict** (phone OTP, refresh tokens, Google SSO).
+- **OpenIddict** token server in the Identity module: `POST /api/identity/token` (OAuth 2.0, form-encoded) with the password and refresh_token grants; access tokens 15 min, rotating refresh tokens. Token entries live in the tenant's `identity` schema. Phone OTP and Google SSO come next. Outside Development and Testing, `Auth:SigningCertificate` and `Auth:EncryptionCertificate` (base64 PFX, from secrets) are required.
 - Authorization is **permission-based**: permission strings like `catalog.products.edit`, bundled into roles. `PermissionPolicyProvider` builds a policy per permission; `PermissionAuthorizationHandler` checks the user's permissions.
 - Tokens carry a `tenant` claim that must match the resolved tenant.
 
