@@ -76,13 +76,21 @@ choice is configuration later, never a blocker now.
   - One order may have several payments (part COD, part prepaid) — model it now.
   - Permission `payments.manage`.
 
-### 9. payments-sslcommerz
+### 9a. gateway-credentials
+- [~] **SSLCommerz merchant credentials and gateway client**
+  - Per-tenant merchant credentials in Settings (store id, store password, sandbox or live), the password encrypted with the Data Protection API (purpose bound to the tenant); staff endpoints never return it. Data Protection keys persisted in the Platform database.
+  - Contracts `IPaymentGatewayCredentials` for Payments (not cached, so secrets never reach Redis).
+  - Gateway behind `IPaymentGateway` (create a session, validate a transaction) with the SSLCommerz implementation; tests use a stub HTTP handler (no network).
+
+### 9b. prepaid-checkout
 - [ ] **Prepaid checkout with SSLCommerz**
   - Prepaid orders start in `PendingPayment`; Payments creates a gateway session and returns the redirect URL.
   - IPN webhook endpoint (anonymous, tenant from host): store raw payload in `GatewayWebhookLog`, validate with the gateway validation API (never trust the redirect), then `PaymentSucceeded` / `PaymentFailed`. Ordering confirms or cancels; Inventory commits or releases.
-  - Per-tenant merchant credentials in Settings, encrypted with the Data Protection API.
-  - Reconciliation background job every 15 minutes for missed webhooks.
-  - Gateway behind `IPaymentGateway`; tests use a fake gateway (no network).
+  - Tests use a fake `IPaymentGateway` (no network).
+
+### 9c. payment-reconciliation
+- [ ] **Reconciliation of missed gateway webhooks**
+  - Background job every 15 minutes: for pending gateway payments, query the gateway by transaction id and settle them exactly as the IPN would.
 
 ### 10. notifications
 - [ ] **Notifications module**
