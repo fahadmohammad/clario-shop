@@ -106,7 +106,8 @@ internal sealed class Payment : Entity
     /// <summary>
     /// Settles the payment from what the gateway confirmed for one of its attempts. The receipt must be for exactly the
     /// amount asked, in taka, and not held for review. Settling the same attempt again changes nothing; another
-    /// attempt paid after the payment already succeeded is recorded as paid twice, for staff to refund.
+    /// attempt paid after the payment already succeeded is recorded as paid twice, for staff to refund. A payment that
+    /// had failed succeeds after all: the money arrived, even if the order is cancelled by now.
     /// </summary>
     public Result<SettleOutcome> Settle(Guid attemptId, GatewayReceipt receipt, DateTimeOffset now)
     {
@@ -140,7 +141,28 @@ internal sealed class Payment : Entity
         return SettleOutcome.Settled;
     }
 
-    /// <summary>The gateway would not open a session for the attempt; the payment stays pending for another try.</summary>
+    /// <summary>
+    /// The gateway has no paid try for any attempt and the shopper stopped trying: the payment fails, with every attempt
+    /// still open. Fail the attempts the gateway gave a reason for first (<see cref="FailAttempt"/>). A payment the
+    /// gateway confirms later still settles (<see cref="Settle"/>), so the money is never lost from view.
+    /// </summary>
+    public void Fail(string reason, DateTimeOffset now)
+    {
+        if (Status != PaymentStatus.Pending)
+        {
+            throw new InvalidOperationException($"A {Status} payment cannot fail.");
+        }
+
+        foreach (var attempt in attempts.Where(a => a.Outcome == AttemptOutcome.Pending))
+        {
+            attempt.Fail(reason, now);
+        }
+
+        Status = PaymentStatus.Failed;
+        CompletedAt = now;
+    }
+
+    /// <summary>The attempt did not pay, e.g. the gateway would not open its session; the payment stays pending for another try.</summary>
     public void FailAttempt(Guid attemptId, string reason, DateTimeOffset now) =>
         attempts.Single(a => a.Id == attemptId).Fail(reason, now);
 }

@@ -190,6 +190,84 @@ public sealed class SslCommerzGatewayTests
     }
 
     [Fact]
+    public async Task FindAttemptsAsync_TriesFound_QueriesByTransactionIdAndMapsEachTry()
+    {
+        var handler = new StubHandler(Json("""
+            {"APIConnect":"DONE","no_of_trans_found":4,"element":[
+             {"val_id":"","status":"FAILED","tran_id":"PAY 1"},
+             {"val_id":"","status":"CANCELLED","tran_id":"PAY 1"},
+             {"val_id":"","status":"PENDING","tran_id":"PAY 1"},
+             {"val_id":"VAL-9","status":"VALIDATED","tran_id":"PAY 1","amount":"1250.50"}]}
+            """));
+
+        var attempts = await Gateway(handler, Sandbox).FindAttemptsAsync("PAY 1", Cancel);
+
+        Assert.Equal(
+            [
+                new GatewayAttempt(GatewayAttemptState.NotPaid, "FAILED", null),
+                new GatewayAttempt(GatewayAttemptState.NotPaid, "CANCELLED", null),
+                new GatewayAttempt(GatewayAttemptState.InProgress, "PENDING", null),
+                new GatewayAttempt(GatewayAttemptState.Paid, "VALIDATED", "VAL-9"),
+            ],
+            attempts.Value);
+        var sent = Assert.Single(handler.Requests);
+        Assert.Equal((HttpMethod.Get, "/validator/api/merchantTransIDvalidationAPI.php"), (sent.Method, sent.Uri.AbsolutePath));
+        Assert.Equal("?tran_id=PAY%201&store_id=clario0test&store_passwd=s3cret%26pass&format=json", sent.Uri.Query);
+    }
+
+    [Theory]
+    [InlineData("""{"APIConnect":"DONE","no_of_trans_found":0}""")]
+    [InlineData("""{"APIConnect":"DONE","no_of_trans_found":0,"element":[]}""")]
+    public async Task FindAttemptsAsync_NoTries_ReturnsNone(string body)
+    {
+        var attempts = await Gateway(new StubHandler(Json(body)), Sandbox).FindAttemptsAsync("PAY-1", Cancel);
+
+        Assert.Empty(attempts.Value);
+    }
+
+    [Fact]
+    public async Task FindAttemptsAsync_PaidWithoutValidationId_IsInProgress()
+    {
+        var handler = new StubHandler(Json("""{"APIConnect":"DONE","element":[{"status":"VALID","tran_id":"PAY-1"}]}"""));
+
+        var attempts = await Gateway(handler, Sandbox).FindAttemptsAsync("PAY-1", Cancel);
+
+        Assert.Equal(GatewayAttemptState.InProgress, Assert.Single(attempts.Value).State);
+    }
+
+    [Theory]
+    [InlineData("""{"APIConnect":"INVALID_REQUEST"}""")]
+    [InlineData("""{"APIConnect":"INACTIVE"}""")]
+    [InlineData("""{"element":[]}""")]
+    public async Task FindAttemptsAsync_LookupRefused_ReturnsRefused(string body)
+    {
+        var attempts = await Gateway(new StubHandler(Json(body)), Sandbox).FindAttemptsAsync("PAY-1", Cancel);
+
+        Assert.Equal("payments.gateway_refused", attempts.Error.Code);
+    }
+
+    [Fact]
+    public async Task FindAttemptsAsync_ServerError_ReturnsUnavailable()
+    {
+        var handler = new StubHandler(_ => new HttpResponseMessage(HttpStatusCode.BadGateway));
+
+        var attempts = await Gateway(handler, Sandbox).FindAttemptsAsync("PAY-1", Cancel);
+
+        Assert.Equal(("payments.gateway_unavailable", ErrorType.Unavailable), (attempts.Error.Code, attempts.Error.Type));
+    }
+
+    [Fact]
+    public async Task FindAttemptsAsync_NoMerchantAccount_ReturnsNotConfigured()
+    {
+        var handler = new StubHandler(Json("{}"));
+
+        var attempts = await Gateway(handler, credentials: null).FindAttemptsAsync("PAY-1", Cancel);
+
+        Assert.Equal("payments.gateway_not_configured", attempts.Error.Code);
+        Assert.Empty(handler.Requests);
+    }
+
+    [Fact]
     public void Credentials_ToString_LeavesOutPassword() =>
         Assert.DoesNotContain("s3cret", Sandbox.ToString());
 

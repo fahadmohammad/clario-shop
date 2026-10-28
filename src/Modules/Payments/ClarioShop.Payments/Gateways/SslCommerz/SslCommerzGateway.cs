@@ -56,14 +56,7 @@ internal sealed partial class SslCommerzGateway(
             return PaymentsErrors.GatewayNotConfigured(GatewayName);
         }
 
-        var query = string.Join('&', new Dictionary<string, string>
-        {
-            ["val_id"] = validationId,
-            ["store_id"] = account.StoreId,
-            ["store_passwd"] = account.StorePassword,
-            ["format"] = "json",
-        }.Select(pair => $"{pair.Key}={Uri.EscapeDataString(pair.Value)}"));
-        var response = await SendAsync(new HttpRequestMessage(HttpMethod.Get, new Uri(BaseUrl(account), $"validator/api/validationserverAPI.php?{query}")), cancellationToken);
+        var response = await GetAsync(account, "validator/api/validationserverAPI.php", "val_id", validationId, cancellationToken);
         if (response.IsFailure)
         {
             return response.Error;
@@ -103,6 +96,50 @@ internal sealed partial class SslCommerzGateway(
             Text(json, "bank_tran_id"),
             Text(json, "card_type"),
             Text(json, "risk_level") == "1");
+    }
+
+    public async Task<Result<IReadOnlyList<GatewayAttempt>>> FindAttemptsAsync(string transactionId, CancellationToken cancellationToken)
+    {
+        if (await credentials.GetSslCommerzAsync(cancellationToken) is not { } account)
+        {
+            return PaymentsErrors.GatewayNotConfigured(GatewayName);
+        }
+
+        var response = await GetAsync(account, "validator/api/merchantTransIDvalidationAPI.php", "tran_id", transactionId, cancellationToken);
+        if (response.IsFailure)
+        {
+            return response.Error;
+        }
+
+        using var document = response.Value;
+        var json = document.RootElement;
+        if (Text(json, "APIConnect") is not "DONE")
+        {
+            // E.g. INVALID_REQUEST or INACTIVE: the lookup itself was refused, which says nothing about the payment.
+            LogLookupRefused(logger, transactionId, Text(json, "APIConnect") ?? "no reason given");
+            return PaymentsErrors.GatewayRefused(GatewayName);
+        }
+
+        if (!json.TryGetProperty("element", out var elements) || elements.ValueKind != JsonValueKind.Array)
+        {
+            return Result.Success<IReadOnlyList<GatewayAttempt>>([]);
+        }
+
+        return Result.Success<IReadOnlyList<GatewayAttempt>>([.. elements.EnumerateArray()
+            .Where(element => element.ValueKind == JsonValueKind.Object)
+            .Select(element =>
+            {
+                var status = Text(element, "status") ?? string.Empty;
+                var validationId = Text(element, "val_id");
+                var state = status switch
+                {
+                    // A paid try without a validation id cannot be validated; keep the payment open rather than fail it.
+                    "VALID" or "VALIDATED" => validationId is null ? GatewayAttemptState.InProgress : GatewayAttemptState.Paid,
+                    "PENDING" => GatewayAttemptState.InProgress,
+                    _ => GatewayAttemptState.NotPaid,
+                };
+                return new GatewayAttempt(state, status, validationId);
+            })]);
     }
 
     private static Dictionary<string, string> SessionForm(SslCommerzCredentials account, GatewaySessionRequest request)
@@ -183,6 +220,19 @@ internal sealed partial class SslCommerzGateway(
         }
     }
 
+    /// <summary>A GET to one of the gateway's lookup APIs, with the store's credentials in the query as SSLCommerz wants them.</summary>
+    private Task<Result<JsonDocument>> GetAsync(SslCommerzCredentials account, string path, string key, string value, CancellationToken cancellationToken)
+    {
+        var query = string.Join('&', new Dictionary<string, string>
+        {
+            [key] = value,
+            ["store_id"] = account.StoreId,
+            ["store_passwd"] = account.StorePassword,
+            ["format"] = "json",
+        }.Select(pair => $"{pair.Key}={Uri.EscapeDataString(pair.Value)}"));
+        return SendAsync(new HttpRequestMessage(HttpMethod.Get, new Uri(BaseUrl(account), $"{path}?{query}")), cancellationToken);
+    }
+
     private Uri BaseUrl(SslCommerzCredentials account) => account.UseSandbox ? options.Value.SandboxBaseUrl : options.Value.LiveBaseUrl;
 
     /// <summary>A property as text: SSLCommerz sends most values as strings, some as numbers; empty counts as missing.</summary>
@@ -204,6 +254,9 @@ internal sealed partial class SslCommerzGateway(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "SSLCommerz refused to validate transaction {ValidationId}: {Reason}")]
     private static partial void LogValidationRefused(ILogger logger, string validationId, string reason);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "SSLCommerz refused to look up transaction {TransactionId}: {Reason}")]
+    private static partial void LogLookupRefused(ILogger logger, string transactionId, string reason);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "SSLCommerz is unavailable: {Reason}")]
     private static partial void LogUnavailable(ILogger logger, string reason);

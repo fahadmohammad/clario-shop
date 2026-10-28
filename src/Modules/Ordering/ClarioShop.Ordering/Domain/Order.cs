@@ -195,6 +195,26 @@ internal sealed class Order : Entity
         return Result.Success();
     }
 
+    /// <summary>
+    /// Cancels a prepaid order whose payment failed (Payments confirmed it with the gateway). Only an order still
+    /// waiting for its payment, with nothing paid, is cancelled this way; anything else is for staff.
+    /// </summary>
+    public Result CancelUnpaid(string reason, DateTimeOffset now)
+    {
+        if (Status != OrderStatus.PendingPayment)
+        {
+            return OrderingErrors.InvalidTransition(Status, OrderStatus.Cancelled);
+        }
+
+        if (AmountPaid > 0m)
+        {
+            return OrderingErrors.PartlyPaid;
+        }
+
+        Record(OrderStatus.Cancelled, userId: null, $"Payment failed: {reason}", now);
+        return Result.Success();
+    }
+
     /// <summary>Moves the order along its lifecycle (see <see cref="OrderTransitions"/>) and records the change.</summary>
     public Result MoveTo(OrderStatus target, Guid? userId, string? note, DateTimeOffset now)
     {

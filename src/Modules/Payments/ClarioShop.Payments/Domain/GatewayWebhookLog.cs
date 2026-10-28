@@ -4,7 +4,8 @@ namespace ClarioShop.Payments.Domain;
 
 /// <summary>
 /// One callback from a payment gateway, stored raw for audit before anything acts on it: the server-to-server
-/// notification (IPN) or the shopper's browser coming back from the payment page. What came of it is
+/// notification (IPN), the shopper's browser coming back from the payment page, or a paid transaction the
+/// reconciliation job found by asking the gateway. What came of it is
 /// <see cref="Outcome"/>.
 /// </summary>
 internal sealed class GatewayWebhookLog : Entity
@@ -94,6 +95,9 @@ internal enum GatewayCallbackSource
 
     /// <summary>The shopper's browser sent back after cancelling on the payment page.</summary>
     CancelRedirect,
+
+    /// <summary>Not a callback: the reconciliation job found the payment by asking the gateway, e.g. after a missed IPN.</summary>
+    Reconciliation,
 }
 
 internal enum GatewayCallbackOutcome

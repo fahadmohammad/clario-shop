@@ -26,6 +26,9 @@ internal static class PaymentsErrors
     public static Error NotAwaitingPayment(string status) =>
         Error.Conflict("payments.not_awaiting_payment", $"The order is {status}, so it takes no online payment.");
 
+    public static readonly Error PaymentFailed =
+        Error.Conflict("payments.payment_failed", "The order's online payment failed, so the order is cancelled; place a new order.");
+
     public static Error AmountMismatch(decimal expected, decimal paid, string currency) =>
         Error.Conflict(
             "payments.amount_mismatch",
