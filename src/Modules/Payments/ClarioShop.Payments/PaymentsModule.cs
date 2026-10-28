@@ -1,5 +1,7 @@
 using ClarioShop.Infrastructure.Handlers;
 using ClarioShop.Infrastructure.Persistence;
+using ClarioShop.Payments.Contracts;
+using ClarioShop.Payments.Features.Gateways;
 using ClarioShop.Payments.Gateways;
 using ClarioShop.Payments.Gateways.SslCommerz;
 using ClarioShop.Payments.Persistence;
@@ -18,6 +20,8 @@ public static class PaymentsModule
         services.AddEndpointGroups(typeof(PaymentsModule).Assembly);
 
         services.AddSingleton<IPermissionProvider, PaymentsPermissionProvider>();
+        services.AddScoped<IPaymentMethods, PaymentMethods>();
+        services.AddScoped<GatewayCallbackProcessor>();
 
         services.Configure<SslCommerzOptions>(configuration.GetSection(SslCommerzOptions.SectionName));
         services.AddHttpClient<SslCommerzGateway>();

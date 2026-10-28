@@ -61,6 +61,12 @@ internal static class OrderingErrors
     public static readonly Error OrderChanged =
         Error.Conflict("ordering.order_changed", "The order was changed by someone else; reload it and try again.");
 
+    public static readonly Error AwaitingPayment =
+        Error.Conflict("ordering.awaiting_payment", "The order is paid online and is confirmed once its payment arrives.");
+
+    public static Error PaymentMethodUnavailable(string method) =>
+        Error.Conflict("ordering.payment_method_unavailable", $"The store does not take {method} payments at the moment; choose another way to pay.");
+
     public static Error InvalidTransition(OrderStatus from, OrderStatus to) =>
         Error.Conflict("ordering.invalid_transition", $"A {from} order cannot be moved to {to}.");
 

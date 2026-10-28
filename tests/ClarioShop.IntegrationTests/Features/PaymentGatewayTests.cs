@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using ClarioShop.IntegrationTests.Infrastructure;
 using ClarioShop.Payments.Gateways;
+using ClarioShop.Payments.Gateways.SslCommerz;
 using ClarioShop.Settings.Contracts;
 using ClarioShop.Settings.Domain;
 using ClarioShop.Settings.Persistence;
@@ -167,7 +168,8 @@ public sealed class PaymentGatewayTests(ClarioApiFactory api)
     {
         var tenant = await api.CreateTenantAsync("pg-none");
         await using var scope = await api.CreateTenantScopeAsync(tenant.Identifier);
-        var gateway = scope.ServiceProvider.GetRequiredService<IPaymentGateway>();
+        // The real SSLCommerz client; the tests' IPaymentGateway is a fake.
+        var gateway = scope.ServiceProvider.GetRequiredService<SslCommerzGateway>();
 
         var session = await gateway.CreateSessionAsync(
             new GatewaySessionRequest(

@@ -93,6 +93,26 @@ internal sealed class Order : Entity
         OrderDelivery? delivery,
         decimal vatRatePercent,
         Guid reservationId,
+        DateTimeOffset now) =>
+        Place(id, number, cartId, customer, deliveryAddress, note, lines, delivery, vatRatePercent, PaymentMethod.CashOnDelivery, reservationId, now);
+
+    /// <summary>
+    /// Places an order paid the given way: cash on delivery starts <see cref="OrderStatus.Placed"/>, waiting for staff
+    /// to confirm it; a prepaid order starts <see cref="OrderStatus.PendingPayment"/> and is confirmed by its payment.
+    /// </summary>
+    /// <param name="id">Chosen before the order exists, because the stock reservation is made for it first.</param>
+    public static Order Place(
+        Guid id,
+        long number,
+        Guid cartId,
+        OrderCustomer customer,
+        DeliveryAddress deliveryAddress,
+        string? note,
+        IReadOnlyList<OrderLineSpec> lines,
+        OrderDelivery? delivery,
+        decimal vatRatePercent,
+        PaymentMethod paymentMethod,
+        Guid reservationId,
         DateTimeOffset now)
     {
         if (lines.Count == 0)
@@ -110,10 +130,10 @@ internal sealed class Order : Entity
             CustomerPhone = customer.Phone,
             DeliveryAddress = deliveryAddress,
             Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
-            PaymentMethod = PaymentMethod.CashOnDelivery,
+            PaymentMethod = paymentMethod,
             DeliveryZoneId = delivery?.ZoneId,
             DeliveryZoneName = delivery?.ZoneName,
-            Status = OrderStatus.Placed,
+            Status = paymentMethod.IsPrepaid() ? OrderStatus.PendingPayment : OrderStatus.Placed,
             ReservationId = reservationId,
             PlacedAt = now,
             UpdatedAt = now,
@@ -126,7 +146,7 @@ internal sealed class Order : Entity
         order.VatRatePercent = charges.VatRatePercent;
         order.Vat = charges.Vat;
         order.Total = charges.Total;
-        order.history.Add(OrderStatusChange.Create(id, from: null, OrderStatus.Placed, now, userId: null, note: null));
+        order.history.Add(OrderStatusChange.Create(id, from: null, order.Status, now, userId: null, note: null));
         return order;
     }
 
@@ -154,6 +174,27 @@ internal sealed class Order : Entity
         return moved;
     }
 
+    /// <summary>
+    /// Confirms a prepaid order once its payments cover the total; staff never confirm a prepaid order. Like
+    /// <see cref="Confirm"/>, <paramref name="reservationId"/> is the reservation holding its stock now.
+    /// </summary>
+    public Result ConfirmPaid(Guid reservationId, DateTimeOffset now)
+    {
+        if (Status != OrderStatus.PendingPayment)
+        {
+            return OrderingErrors.InvalidTransition(Status, OrderStatus.Confirmed);
+        }
+
+        if (PaymentStatus != OrderPaymentStatus.Paid)
+        {
+            return OrderingErrors.AwaitingPayment;
+        }
+
+        Record(OrderStatus.Confirmed, userId: null, "Paid online", now);
+        ReservationId = reservationId;
+        return Result.Success();
+    }
+
     /// <summary>Moves the order along its lifecycle (see <see cref="OrderTransitions"/>) and records the change.</summary>
     public Result MoveTo(OrderStatus target, Guid? userId, string? note, DateTimeOffset now)
     {
@@ -162,9 +203,7 @@ internal sealed class Order : Entity
             return OrderingErrors.InvalidTransition(Status, target);
         }
 
-        history.Add(OrderStatusChange.Create(Id, Status, target, now, userId, string.IsNullOrWhiteSpace(note) ? null : note.Trim()));
-        Status = target;
-        UpdatedAt = now;
+        Record(target, userId, note, now);
         return Result.Success();
     }
 
@@ -183,5 +222,12 @@ internal sealed class Order : Entity
         AmountPaid += amount;
         UpdatedAt = now;
         return true;
+    }
+
+    private void Record(OrderStatus target, Guid? userId, string? note, DateTimeOffset now)
+    {
+        history.Add(OrderStatusChange.Create(Id, Status, target, now, userId, string.IsNullOrWhiteSpace(note) ? null : note.Trim()));
+        Status = target;
+        UpdatedAt = now;
     }
 }

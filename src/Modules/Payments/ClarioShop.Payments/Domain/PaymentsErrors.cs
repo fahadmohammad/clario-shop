@@ -17,6 +17,20 @@ internal static class PaymentsErrors
     public static Error GatewayUnavailable(string gateway) =>
         Error.Unavailable("payments.gateway_unavailable", $"{gateway} did not answer; try again in a moment.");
 
+    public static readonly Error NotPrepaid =
+        Error.Conflict("payments.not_prepaid", "The order is paid in cash on delivery, not online.");
+
+    public static readonly Error HeldForReview =
+        Error.Conflict("payments.held_for_review", "The gateway flagged the payment as risky; it is held until staff review it.");
+
+    public static Error NotAwaitingPayment(string status) =>
+        Error.Conflict("payments.not_awaiting_payment", $"The order is {status}, so it takes no online payment.");
+
+    public static Error AmountMismatch(decimal expected, decimal paid, string currency) =>
+        Error.Conflict(
+            "payments.amount_mismatch",
+            string.Create(CultureInfo.InvariantCulture, $"The gateway reports {paid:0.00} {currency}, but the payment is for {expected:0.00} {Payment.Currency}."));
+
     public static Error NotOutForDelivery(string status) =>
         Error.Conflict("payments.not_out_for_delivery", $"Cash is collected on delivery, but the order is {status}; ship it first.");
 
