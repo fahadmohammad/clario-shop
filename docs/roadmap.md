@@ -27,7 +27,7 @@ choice is configuration later, never a blocker now.
   - Done when: phone normalization unit-tested (`01712-345678`, `+8801712345678`, `8801712345678` are one customer), find-or-create is idempotent under concurrency, module is in the architecture tests.
 
 ### 2. ordering-checkout
-- [ ] **Ordering module: cart and cash-on-delivery checkout**
+- [~] **Ordering module: cart and cash-on-delivery checkout**
   - `Cart`/`CartItem` (anonymous cart id for guests), add/update/remove items; prices always read from `ICatalogQueries` (only sellable variants).
   - `POST /api/ordering/checkout` (COD): finds or creates the customer via `ICustomerDirectory`, creates `Order` in `Placed` with `OrderLine`s that copy name, SKU and price, reserves stock via `IInventoryReservations` (insufficient stock → 409, nothing persisted), writes `OrderStatusHistory`, publishes `OrderPlaced`.
   - Order number per tenant (readable, sequential, e.g. `CS-000123`).
