@@ -13,6 +13,8 @@ internal sealed class Order : Entity
 
     private readonly List<OrderStatusChange> history = [];
 
+    private readonly List<OrderPayment> payments = [];
+
     private Order()
     {
     }
@@ -57,6 +59,11 @@ internal sealed class Order : Entity
     /// <summary>Subtotal plus delivery fee plus VAT: what the shopper pays.</summary>
     public decimal Total { get; private set; }
 
+    /// <summary>Sum of the payments Payments has reported for the order.</summary>
+    public decimal AmountPaid { get; private set; }
+
+    public OrderPaymentStatus PaymentStatus => PaymentStatusFor(Total, AmountPaid);
+
     /// <summary>The Inventory reservation holding this order's stock.</summary>
     public Guid ReservationId { get; private set; }
 
@@ -70,6 +77,9 @@ internal sealed class Order : Entity
     public IReadOnlyCollection<OrderLine> Lines => lines;
 
     public IReadOnlyCollection<OrderStatusChange> History => history;
+
+    /// <summary>Loaded only when recording a payment.</summary>
+    public IReadOnlyCollection<OrderPayment> Payments => payments;
 
     /// <param name="id">Chosen before the order exists, because the stock reservation is made for it first.</param>
     public static Order PlaceCashOnDelivery(
@@ -120,6 +130,13 @@ internal sealed class Order : Entity
         return order;
     }
 
+    public static OrderPaymentStatus PaymentStatusFor(decimal total, decimal amountPaid) => amountPaid switch
+    {
+        <= 0m => OrderPaymentStatus.Unpaid,
+        _ when amountPaid >= total => OrderPaymentStatus.Paid,
+        _ => OrderPaymentStatus.PartiallyPaid,
+    };
+
     public bool CanMoveTo(OrderStatus target) => OrderTransitions.IsAllowed(Status, target);
 
     /// <summary>
@@ -149,5 +166,22 @@ internal sealed class Order : Entity
         Status = target;
         UpdatedAt = now;
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Adds a payment Payments reported. Returns false, changing nothing, when this payment was already recorded,
+    /// e.g. its event was delivered twice. Needs <see cref="Payments"/> loaded.
+    /// </summary>
+    public bool RecordPayment(Guid paymentId, string method, decimal amount, DateTimeOffset paidAt, DateTimeOffset now)
+    {
+        if (payments.Any(payment => payment.Id == paymentId))
+        {
+            return false;
+        }
+
+        payments.Add(OrderPayment.Create(paymentId, Id, method, amount, paidAt));
+        AmountPaid += amount;
+        UpdatedAt = now;
+        return true;
     }
 }

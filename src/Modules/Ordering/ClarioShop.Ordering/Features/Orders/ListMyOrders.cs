@@ -17,6 +17,7 @@ public static class ListMyOrders
         string PaymentMethod,
         int LineCount,
         decimal Total,
+        string PaymentStatus,
         DateTimeOffset PlacedAt,
         DateTimeOffset UpdatedAt);
 
@@ -50,6 +51,7 @@ public static class ListMyOrders
                     order.PaymentMethod,
                     LineCount = order.Lines.Count,
                     order.Total,
+                    order.AmountPaid,
                     order.PlacedAt,
                     order.UpdatedAt,
                 })
@@ -63,6 +65,7 @@ public static class ListMyOrders
                     order.PaymentMethod.ToString(),
                     order.LineCount,
                     order.Total,
+                    Order.PaymentStatusFor(order.Total, order.AmountPaid).ToString(),
                     order.PlacedAt,
                     order.UpdatedAt))
                 .ToList();

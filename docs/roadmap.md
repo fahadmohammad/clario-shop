@@ -71,7 +71,7 @@ choice is configuration later, never a blocker now.
   - Permissions/policies so a shopper only ever sees their own data.
 
 ### 8. payments-cod
-- [~] **Payments module: COD collection**
+- [x] **Payments module: COD collection** — #14
   - `Payment`, `PaymentAttempt`; record cash collected on delivery (staff/rider endpoint); publishes `PaymentSucceeded`; Ordering shows payment status.
   - One order may have several payments (part COD, part prepaid) — model it now.
   - Permission `payments.manage`.

@@ -9,6 +9,7 @@ using ClarioShop.Infrastructure.Sms;
 using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Inventory;
 using ClarioShop.Ordering;
+using ClarioShop.Payments;
 using ClarioShop.Platform;
 using ClarioShop.Settings;
 using Scalar.AspNetCore;
@@ -47,6 +48,7 @@ builder.Services
     .AddInventoryModule(builder.Configuration)
     .AddCustomersModule()
     .AddOrderingModule()
+    .AddPaymentsModule()
     .AddSettingsModule();
 
 var app = builder.Build();

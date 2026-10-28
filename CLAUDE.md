@@ -35,7 +35,7 @@ tests/
   ClarioShop.IntegrationTests/
 ```
 
-Modules today: **Platform** (tenant registry), **Identity** (users, roles, permissions, tokens), **Catalog**, **Inventory** (locations, stock ledger, reservations), **Customers** (customers by phone, addresses), **Ordering** (carts, checkout, orders), **Settings** (store profile, theme, VAT, delivery zones). Planned: Payments, Pos, Reviews, Notifications, Reporting.
+Modules today: **Platform** (tenant registry), **Identity** (users, roles, permissions, tokens), **Catalog**, **Inventory** (locations, stock ledger, reservations), **Customers** (customers by phone, addresses), **Ordering** (carts, checkout, orders), **Payments** (payments per order, cash collected on delivery), **Settings** (store profile, theme, VAT, delivery zones). Planned: Pos, Reviews, Notifications, Reporting.
 
 ## Module Rules (enforced by ClarioShop.ArchitectureTests)
 

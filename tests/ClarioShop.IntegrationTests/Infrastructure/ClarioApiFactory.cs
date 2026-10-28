@@ -10,6 +10,8 @@ using ClarioShop.Infrastructure.Sms;
 using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Ordering.Contracts.Events;
 using ClarioShop.Ordering.Persistence;
+using ClarioShop.Payments.Contracts.Events;
+using ClarioShop.Payments.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -169,6 +171,7 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
             services.AddIntegrationEventHandler<OrderCancelled, RecordingHandler<OrderCancelled>, OrderingDbContext>("tests");
             services.AddIntegrationEventHandler<OrderShipped, RecordingHandler<OrderShipped>, OrderingDbContext>("tests");
             services.AddIntegrationEventHandler<OrderDelivered, RecordingHandler<OrderDelivered>, OrderingDbContext>("tests");
+            services.AddIntegrationEventHandler<PaymentSucceeded, RecordingHandler<PaymentSucceeded>, PaymentsDbContext>("tests");
         });
     }
 

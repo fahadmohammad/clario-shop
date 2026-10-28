@@ -20,6 +20,8 @@ public sealed record OrderDetails(
     decimal VatRatePercent,
     decimal Vat,
     decimal Total,
+    string PaymentStatus,
+    decimal AmountPaid,
     DateTimeOffset PlacedAt,
     IReadOnlyList<StatusChangeItem> History)
 {
@@ -45,6 +47,8 @@ public sealed record OrderDetails(
         order.VatRatePercent,
         order.Vat,
         order.Total,
+        order.PaymentStatus.ToString(),
+        order.AmountPaid,
         order.PlacedAt,
         [.. order.History.OrderBy(change => change.ChangedAt).ThenBy(change => change.Id).Select(StatusChangeItem.From)]);
 

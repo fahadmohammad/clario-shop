@@ -10,6 +10,7 @@
     <ProjectReference Include="..\..\Catalog\ClarioShop.Catalog.Contracts\ClarioShop.Catalog.Contracts.csproj" />
     <ProjectReference Include="..\..\Customers\ClarioShop.Customers.Contracts\ClarioShop.Customers.Contracts.csproj" />
     <ProjectReference Include="..\..\Inventory\ClarioShop.Inventory.Contracts\ClarioShop.Inventory.Contracts.csproj" />
+    <ProjectReference Include="..\..\Payments\ClarioShop.Payments.Contracts\ClarioShop.Payments.Contracts.csproj" />
     <ProjectReference Include="..\..\Settings\ClarioShop.Settings.Contracts\ClarioShop.Settings.Contracts.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\ClarioShop.Infrastructure\ClarioShop.Infrastructure.csproj" />
   </ItemGroup>
