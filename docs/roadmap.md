@@ -66,7 +66,7 @@ choice is configuration later, never a blocker now.
   - Done when: OTP flow, expiry, attempt limit and rate limit are tested.
 
 ### 7. customer-accounts
-- [ ] **Shopper self-service**
+- [x] **Shopper self-service** — #13
   - Signed-in shopper: my profile, my addresses (CRUD), my orders (list and detail), checkout using a saved address.
   - Permissions/policies so a shopper only ever sees their own data.
 

@@ -47,6 +47,13 @@ public sealed record OrderDetails(
         order.Total,
         order.PlacedAt,
         [.. order.History.OrderBy(change => change.ChangedAt).ThenBy(change => change.Id).Select(StatusChangeItem.From)]);
+
+    /// <summary>The order as its shopper sees it: the status history without staff user ids and internal notes.</summary>
+    internal static OrderDetails ForShopper(Order order)
+    {
+        var details = From(order);
+        return details with { History = [.. details.History.Select(change => change with { ChangedByUserId = null, Note = null })] };
+    }
 }
 
 public sealed record DeliveryAddressItem(string Line1, string? Line2, string Area, string City, string? PostalCode);

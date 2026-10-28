@@ -13,37 +13,57 @@ namespace ClarioShop.Ordering.Features.Checkout;
 /// <summary>
 /// Cash-on-delivery checkout: prices the cart from Catalog, adds the delivery zone's fee and VAT from Settings,
 /// reserves the stock, finds or creates the customer by phone and places the order. Checking out the same cart again
-/// returns the order it already became.
+/// returns the order it already became. A signed-in shopper's order is always their own: it uses the phone number of
+/// their account and may deliver to one of their saved addresses.
 /// </summary>
 public static class Checkout
 {
+    /// <param name="Phone">Required for guests. A signed-in shopper checks out with their own number: leave it out or send that number.</param>
+    /// <param name="Name">Required for guests; a signed-in shopper defaults to their profile name, then the saved address's recipient.</param>
+    /// <param name="Address">A delivery address typed in at checkout; send this or <paramref name="SavedAddressId"/>.</param>
+    /// <param name="SavedAddressId">One of the signed-in shopper's saved addresses.</param>
     /// <param name="DeliveryZoneId">One of the store's active delivery zones; required unless the store has none.</param>
-    public sealed record Command(Guid CartId, string Phone, string Name, AddressInput Address, Guid? DeliveryZoneId, string? Note);
+    public sealed record Request(
+        Guid CartId,
+        string? Phone,
+        string? Name,
+        AddressInput? Address,
+        Guid? SavedAddressId,
+        Guid? DeliveryZoneId,
+        string? Note);
+
+    /// <param name="ShopperCustomerId">The signed-in shopper's customer id, from the token; null for a guest.</param>
+    public sealed record Command(Request Request, Guid? ShopperCustomerId);
 
     public sealed record AddressInput(string Line1, string? Line2, string Area, string City, string? PostalCode);
 
     /// <param name="Created">False when the cart had already been checked out and its existing order is returned.</param>
     public sealed record Response(OrderDetails Order, bool Created);
 
-    internal sealed class Validator : AbstractValidator<Command>
+    internal sealed class Validator : AbstractValidator<Request>
     {
         public Validator()
         {
-            RuleFor(command => command.CartId).NotEmpty();
+            RuleFor(request => request.CartId).NotEmpty();
 
             // The Customers module decides what a valid Bangladeshi mobile number is; this only stops obvious garbage early.
-            RuleFor(command => command.Phone).NotEmpty().MaximumLength(20).Matches(@"^\+?[0-9][0-9 \-]*$")
-                .WithMessage("Enter a Bangladeshi mobile number, e.g. 01712-345678.");
-            RuleFor(command => command.Name).NotEmpty().MaximumLength(200);
-            RuleFor(command => command.Note).MaximumLength(500);
-            RuleFor(command => command.Address).NotNull().ChildRules(address =>
+            RuleFor(request => request.Phone).NotEmpty().MaximumLength(20).Matches(@"^\+?[0-9][0-9 \-]*$")
+                .WithMessage("Enter a Bangladeshi mobile number, e.g. 01712-345678.")
+                .When(request => request.Phone is not null);
+            RuleFor(request => request.Name).NotEmpty().MaximumLength(200).When(request => request.Name is not null);
+            RuleFor(request => request.Note).MaximumLength(500);
+            RuleFor(request => request.Address).NotNull().When(request => request.SavedAddressId is null)
+                .WithMessage("Enter a delivery address or choose a saved one.");
+            RuleFor(request => request.Address).Null().When(request => request.SavedAddressId is not null)
+                .WithMessage("Send a delivery address or a saved address, not both.");
+            RuleFor(request => request.Address!).ChildRules(address =>
             {
                 address.RuleFor(a => a.Line1).NotEmpty().MaximumLength(300);
                 address.RuleFor(a => a.Line2).MaximumLength(300);
                 address.RuleFor(a => a.Area).NotEmpty().MaximumLength(100);
                 address.RuleFor(a => a.City).NotEmpty().MaximumLength(100);
                 address.RuleFor(a => a.PostalCode).MaximumLength(10);
-            });
+            }).When(request => request.Address is not null);
         }
     }
 
@@ -57,7 +77,7 @@ public static class Checkout
     {
         public async Task<Result<Response>> HandleAsync(Command command, CancellationToken cancellationToken)
         {
-            var cart = await db.FindCartAsync(command.CartId, cancellationToken);
+            var cart = await db.FindCartAsync(command.Request.CartId, cancellationToken);
             if (cart is null)
             {
                 return OrderingErrors.CartNotFound;
@@ -73,7 +93,13 @@ public static class Checkout
                 return OrderingErrors.CartEmpty;
             }
 
-            var delivery = await DeliveryAsync(command.DeliveryZoneId, cancellationToken);
+            var recipient = await RecipientAsync(command, cancellationToken);
+            if (recipient.IsFailure)
+            {
+                return recipient.Error;
+            }
+
+            var delivery = await DeliveryAsync(command.Request.DeliveryZoneId, cancellationToken);
             if (delivery.IsFailure)
             {
                 return delivery.Error;
@@ -96,13 +122,67 @@ public static class Checkout
                 return await CheckedOutOrderAsync(cart.Id, cancellationToken) ?? Result.Failure<Response>(reservation.Error);
             }
 
-            var placed = await PlaceAsync(cart, command, orderId, priced.Value, delivery.Value, reservation.Value.ReservationId, cancellationToken);
+            var placed = await PlaceAsync(cart, recipient.Value, command.Request.Note, orderId, priced.Value, delivery.Value, reservation.Value.ReservationId, cancellationToken);
             if (placed.IsFailure || !placed.Value.Created)
             {
                 await reservations.ReleaseAsync(reservation.Value.ReservationId, cancellationToken);
             }
 
             return placed;
+        }
+
+        /// <summary>
+        /// Who the order is for and where it goes. A guest gives phone, name and address; a signed-in shopper's order uses
+        /// their account's phone and may use one of their saved addresses, which are looked up by their customer id only.
+        /// </summary>
+        private async Task<Result<Recipient>> RecipientAsync(Command command, CancellationToken cancellationToken)
+        {
+            var request = command.Request;
+            if (command.ShopperCustomerId is not { } shopperId)
+            {
+                if (request.SavedAddressId is not null)
+                {
+                    return OrderingErrors.SavedAddressNeedsSignIn;
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Phone))
+                {
+                    return OrderingErrors.PhoneRequired;
+                }
+
+                return Optional(request.Name) is { } guestName
+                    ? new Recipient(request.Phone, guestName, ToDeliveryAddress(request.Address!))
+                    : OrderingErrors.NameRequired;
+            }
+
+            if (await customers.GetAsync(shopperId, cancellationToken) is not { } shopper)
+            {
+                return OrderingErrors.ShopperNotFound;
+            }
+
+            if (request.Phone is not null && customers.NormalizePhone(request.Phone) != shopper.Phone)
+            {
+                return OrderingErrors.NotShoppersPhone;
+            }
+
+            var saved = request.SavedAddressId is { } savedAddressId
+                ? shopper.Addresses.FirstOrDefault(address => address.AddressId == savedAddressId)
+                : null;
+            if (request.SavedAddressId is not null && saved is null)
+            {
+                return OrderingErrors.SavedAddressNotFound;
+            }
+
+            var name = Optional(request.Name) ?? shopper.Name ?? saved?.RecipientName;
+            if (name is null)
+            {
+                return OrderingErrors.NameRequired;
+            }
+
+            var deliverTo = saved is null
+                ? ToDeliveryAddress(request.Address!)
+                : new DeliveryAddress(saved.Line1, saved.Line2, saved.Area, saved.City, saved.PostalCode);
+            return new Recipient(shopper.Phone, name, deliverTo);
         }
 
         /// <summary>The chosen zone as Settings prices it now; no zone is allowed only while the store has none.</summary>
@@ -146,14 +226,15 @@ public static class Checkout
 
         private async Task<Result<Response>> PlaceAsync(
             Cart cart,
-            Command command,
+            Recipient recipient,
+            string? note,
             Guid orderId,
             IReadOnlyList<OrderLineSpec> lines,
             OrderDelivery? delivery,
             Guid reservationId,
             CancellationToken cancellationToken)
         {
-            var customer = await customers.FindOrCreateByPhoneAsync(command.Phone, command.Name, cancellationToken);
+            var customer = await customers.FindOrCreateByPhoneAsync(recipient.Phone, recipient.Name, cancellationToken);
             if (customer.IsFailure)
             {
                 return customer.Error;
@@ -165,14 +246,9 @@ public static class Checkout
                 orderId,
                 await db.NextOrderNumberAsync(cancellationToken),
                 cart.Id,
-                new OrderCustomer(customer.Value.CustomerId, customer.Value.Phone, command.Name.Trim()),
-                new DeliveryAddress(
-                    command.Address.Line1.Trim(),
-                    Optional(command.Address.Line2),
-                    command.Address.Area.Trim(),
-                    command.Address.City.Trim(),
-                    Optional(command.Address.PostalCode)),
-                command.Note,
+                new OrderCustomer(customer.Value.CustomerId, customer.Value.Phone, recipient.Name),
+                recipient.Address,
+                note,
                 lines,
                 delivery,
                 vatRatePercent,
@@ -228,6 +304,16 @@ public static class Checkout
                 ? new Response(OrderDetails.From(order), Created: false)
                 : OrderingErrors.OrderNotFound;
 
+        private static DeliveryAddress ToDeliveryAddress(AddressInput address) => new(
+            address.Line1.Trim(),
+            Optional(address.Line2),
+            address.Area.Trim(),
+            address.City.Trim(),
+            Optional(address.PostalCode));
+
         private static string? Optional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
+
+    /// <param name="Phone">As given at checkout; the Customers module normalizes it.</param>
+    private sealed record Recipient(string Phone, string Name, DeliveryAddress Address);
 }
