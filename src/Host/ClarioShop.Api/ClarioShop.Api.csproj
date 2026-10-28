@@ -19,5 +19,6 @@
     <ProjectReference Include="..\..\Modules\Inventory\ClarioShop.Inventory\ClarioShop.Inventory.csproj" />
     <ProjectReference Include="..\..\Modules\Customers\ClarioShop.Customers\ClarioShop.Customers.csproj" />
     <ProjectReference Include="..\..\Modules\Ordering\ClarioShop.Ordering\ClarioShop.Ordering.csproj" />
+    <ProjectReference Include="..\..\Modules\Settings\ClarioShop.Settings\ClarioShop.Settings.csproj" />
   </ItemGroup>
 </Project>

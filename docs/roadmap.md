@@ -42,7 +42,7 @@ choice is configuration later, never a blocker now.
   - Done when: end-to-end test place → confirm → stock leaves the ledger; cancel → stock returns; event consumers idempotent.
 
 ### 4. settings
-- [~] **Settings module (per-tenant configuration)**
+- [x] **Settings module (per-tenant configuration)** — #9
   - Store profile (name, contact phone/email, address), branding/theme tokens (colours, radius, fonts, logo URL), invoice prefix, VAT rate, currency formatting, languages.
   - `DeliveryZone` (name, areas, fee, free-delivery threshold).
   - Contracts `ISettingsQueries` (cached with `HybridCache`, invalidated on change); public anonymous `GET /api/settings/storefront` for theme tokens.
