@@ -9,4 +9,7 @@ public enum ErrorType
     Unauthorized,
     Forbidden,
     TooManyRequests,
+
+    /// <summary>A service the operation depends on (e.g. a payment gateway) did not answer or failed.</summary>
+    Unavailable,
 }

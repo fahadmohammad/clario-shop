@@ -42,13 +42,13 @@ builder.Services.AddClarioRateLimiting(builder.Configuration);
 builder.Services.AddClarioCors(builder.Configuration);
 
 builder.Services
-    .AddPlatformModule(builder.Configuration)
+    .AddPlatformModule(builder.Configuration, builder.Environment)
     .AddIdentityModule(builder.Configuration, builder.Environment)
     .AddCatalogModule()
     .AddInventoryModule(builder.Configuration)
     .AddCustomersModule()
     .AddOrderingModule()
-    .AddPaymentsModule()
+    .AddPaymentsModule(builder.Configuration)
     .AddSettingsModule();
 
 var app = builder.Build();

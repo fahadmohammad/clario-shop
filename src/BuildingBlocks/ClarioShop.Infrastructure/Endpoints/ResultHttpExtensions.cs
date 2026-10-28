@@ -28,6 +28,7 @@ public static class ResultHttpExtensions
             ErrorType.Forbidden => StatusCodes.Status403Forbidden,
             ErrorType.Validation => StatusCodes.Status400BadRequest,
             ErrorType.TooManyRequests => StatusCodes.Status429TooManyRequests,
+            ErrorType.Unavailable => StatusCodes.Status503ServiceUnavailable,
             _ => StatusCodes.Status500InternalServerError,
         };
 

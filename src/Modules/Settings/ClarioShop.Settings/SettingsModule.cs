@@ -18,6 +18,8 @@ public static class SettingsModule
         services.AddSingleton<IPermissionProvider, SettingsPermissionProvider>();
         services.AddScoped<SettingsCache>();
         services.AddScoped<ISettingsQueries, SettingsQueries>();
+        services.AddScoped<GatewaySecretProtector>();
+        services.AddScoped<IPaymentGatewayCredentials, PaymentGatewayCredentials>();
         return services;
     }
 }
