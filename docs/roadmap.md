@@ -53,12 +53,17 @@ choice is configuration later, never a blocker now.
   - Checkout takes a delivery zone, adds the zone fee (or free over threshold) and VAT from `ISettingsQueries`; order stores subtotal, delivery fee, VAT, total (all `numeric(18,2)`, rounding rules unit-tested).
   - Coupon groundwork is out of scope.
 
-### 6. shopper-auth
-- [ ] **OpenIddict token server with phone OTP**
+### 6a. token-server
+- [~] **OpenIddict token server**
   - Replace the Phase 0 HMAC issuer with OpenIddict (open source) in the Identity module: staff email + password flow keeps working, refresh tokens (rotating), access tokens 15 min.
-  - Shopper sign-in with phone + OTP: 6 digits, 3-minute expiry, 5 attempts, rate limited per phone and per IP (Redis via HybridCache/distributed cache; in-memory fallback in tests). OTP sent through an `ISmsSender` with a logging implementation.
+  - Token and authorization entries live in the tenant's `identity` schema, so a refresh token only works on the shop that issued it.
+  - Done when: existing integration tests still pass on the new token server; refresh, rotation (a redeemed refresh token is rejected) and cross-tenant refresh are tested.
+
+### 6b. phone-otp
+- [ ] **Shopper sign-in with phone OTP**
+  - Shopper sign-in with phone + OTP as an OpenIddict grant: 6 digits, 3-minute expiry, 5 attempts, rate limited per phone and per IP (Redis via HybridCache/distributed cache; in-memory fallback in tests). OTP sent through an `ISmsSender` with a logging implementation.
   - Shopper accounts link to the Customers module by phone (via Contracts), never by reading its tables.
-  - Done when: existing integration tests still pass on the new token server; OTP flow, expiry, attempt limit and rate limit are tested.
+  - Done when: OTP flow, expiry, attempt limit and rate limit are tested.
 
 ### 7. customer-accounts
 - [ ] **Shopper self-service**
