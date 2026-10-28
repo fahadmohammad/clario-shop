@@ -12,4 +12,12 @@ internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> opti
     public DbSet<User> Users => Set<User>();
 
     public DbSet<Role> Roles => Set<Role>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // OpenIddict applications, authorizations, scopes and tokens, in this schema.
+        modelBuilder.UseOpenIddict<Guid>();
+    }
 }

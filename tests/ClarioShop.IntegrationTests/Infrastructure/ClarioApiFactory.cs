@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using ClarioShop.Catalog.Contracts.Events;
 using ClarioShop.Catalog.Persistence;
 using ClarioShop.Customers.Contracts.Events;
@@ -71,14 +72,30 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         return tenant;
     }
 
-    public async Task<string> SignInAsync(string tenant, string email, string password)
+    public async Task<string> SignInAsync(string tenant, string email, string password) =>
+        (await SignInWithTokensAsync(tenant, email, password)).AccessToken;
+
+    /// <summary>Password grant against the token endpoint; returns the access and refresh tokens.</summary>
+    public async Task<TokenResponse> SignInWithTokensAsync(string tenant, string email, string password)
     {
         using var client = CreateTenantClient(tenant);
-        var response = await client.PostAsJsonAsync("/api/identity/token", new { email, password });
+        var response = await client.PostAsync("/api/identity/token", PasswordGrant(email, password));
         await response.EnsureSuccessWithBodyAsync();
-        var token = await response.Content.ReadFromJsonAsync<TokenResponse>();
-        return token!.AccessToken;
+        return (await response.Content.ReadFromJsonAsync<TokenResponse>())!;
     }
+
+    public static FormUrlEncodedContent PasswordGrant(string email, string password) => new(new Dictionary<string, string>
+    {
+        ["grant_type"] = "password",
+        ["username"] = email,
+        ["password"] = password,
+    });
+
+    public static FormUrlEncodedContent RefreshTokenGrant(string refreshToken) => new(new Dictionary<string, string>
+    {
+        ["grant_type"] = "refresh_token",
+        ["refresh_token"] = refreshToken,
+    });
 
     /// <summary>A DI scope bound to the tenant, for calling module contracts the way another module would.</summary>
     public async Task<AsyncServiceScope> CreateTenantScopeAsync(string identifier)
@@ -112,7 +129,8 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         builder.UseSetting("Platform:MigrateOnStartup", "true");
         builder.UseSetting("Platform:DemoTenant:Enabled", "false");
         builder.UseSetting("Tenancy:AllowTenantHeader", "true");
-        builder.UseSetting("Auth:SigningKey", Convert.ToBase64String(Guid.NewGuid().ToByteArray().Concat(Guid.NewGuid().ToByteArray()).ToArray()));
+        // A rotated refresh token is rejected at once, so the tests can see rotation without waiting.
+        builder.UseSetting("Auth:RefreshTokenReuseLeeway", "00:00:00");
         builder.UseSetting("Messaging:OutboxPollInterval", "00:00:00.200");
 
         builder.ConfigureTestServices(services =>
@@ -150,9 +168,13 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
             await drop.ExecuteNonQueryAsync();
         }
     }
-
-    private sealed record TokenResponse(string AccessToken);
 }
+
+public sealed record TokenResponse(
+    [property: JsonPropertyName("access_token")] string AccessToken,
+    [property: JsonPropertyName("refresh_token")] string? RefreshToken,
+    [property: JsonPropertyName("token_type")] string TokenType,
+    [property: JsonPropertyName("expires_in")] int ExpiresIn);
 
 public sealed record TestTenant(string Identifier, string OwnerEmail, string OwnerPassword);
 

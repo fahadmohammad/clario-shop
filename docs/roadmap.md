@@ -54,7 +54,7 @@ choice is configuration later, never a blocker now.
   - Coupon groundwork is out of scope.
 
 ### 6a. token-server
-- [~] **OpenIddict token server**
+- [x] **OpenIddict token server** — #11
   - Replace the Phase 0 HMAC issuer with OpenIddict (open source) in the Identity module: staff email + password flow keeps working, refresh tokens (rotating), access tokens 15 min.
   - Token and authorization entries live in the tenant's `identity` schema, so a refresh token only works on the shop that issued it.
   - Done when: existing integration tests still pass on the new token server; refresh, rotation (a redeemed refresh token is rejected) and cross-tenant refresh are tested.

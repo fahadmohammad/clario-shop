@@ -2,7 +2,6 @@
 // Secrets are generated once and kept in user secrets; see them in the dashboard's Parameters tab.
 var builder = DistributedApplication.CreateBuilder(args);
 
-var jwtSigningKey = builder.AddParameter("jwt-signing-key", new GenerateParameterDefault { MinLength = 64, Special = false }, secret: true, persist: true);
 var platformApiKey = builder.AddParameter("platform-api-key", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
 var demoOwnerPassword = builder.AddParameter("demo-owner-password", new GenerateParameterDefault { MinLength = 16, Special = false }, secret: true, persist: true);
 
@@ -22,7 +21,6 @@ builder.AddProject<Projects.ClarioShop_Api>("api")
     .WaitFor(platformDb)
     .WaitFor(redis)
     .WaitFor(rabbitMq)
-    .WithEnvironment("Auth__SigningKey", jwtSigningKey)
     .WithEnvironment("Platform__ApiKey", platformApiKey)
     .WithEnvironment("Platform__DemoTenant__OwnerPassword", demoOwnerPassword)
     .WithExternalHttpEndpoints();

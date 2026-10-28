@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using ClarioShop.Identity.Persistence;
 using ClarioShop.SharedKernel.Security;
-using Microsoft.IdentityModel.JsonWebTokens;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace ClarioShop.Identity.Features.Users;
 
@@ -15,7 +15,7 @@ public static class GetCurrentUser
     {
         public async Task<Result<Response>> HandleAsync(Query query, CancellationToken cancellationToken)
         {
-            if (!Guid.TryParse(query.Principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value, out var userId))
+            if (!Guid.TryParse(query.Principal.FindFirst(Claims.Subject)?.Value, out var userId))
             {
                 return Error.Unauthorized("identity.no_subject", "The token has no user.");
             }

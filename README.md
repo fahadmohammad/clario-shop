@@ -12,7 +12,7 @@ White-label retail platform for Bangladeshi businesses: an online store and a su
 | Modular monolith on .NET 10, vertical slices, module boundaries enforced by tests | Done |
 | Multi-tenancy: host-name resolution, one PostgreSQL database per tenant, per-tenant migrations | Done |
 | Tenant provisioning API (database, schemas, system roles, owner account) | Done |
-| Identity: staff sign-in (JWT), permission-based RBAC, seeded Owner, Catalog Manager and Inventory Clerk roles | Done (OpenIddict, phone OTP and SSO in Phase 1) |
+| Identity: OpenIddict token server (staff email + password, 15-minute access tokens, rotating refresh tokens stored per tenant), permission-based RBAC, seeded Owner, Catalog Manager and Inventory Clerk roles | Done (phone OTP and SSO follow) |
 | Catalog: categories, products, variants with barcodes and sold-by-weight, publish, storefront reads | Done |
 | Inventory: default location per tenant, append-only stock ledger, stock levels with optimistic concurrency, 15-minute checkout reservations, purchase receipts, adjustments with reason codes | Done (transfers, POS sales and the nightly drift check follow) |
 | Customers: one customer per Bangladeshi mobile number (any format), concurrency-safe find-or-create for checkout, addresses with one default, staff search | Done (loyalty later) |
