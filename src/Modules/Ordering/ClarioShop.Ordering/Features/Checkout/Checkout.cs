@@ -6,16 +6,19 @@ using ClarioShop.Ordering.Domain;
 using ClarioShop.Ordering.Features.Carts;
 using ClarioShop.Ordering.Features.Orders;
 using ClarioShop.Ordering.Persistence;
+using ClarioShop.Settings.Contracts;
 
 namespace ClarioShop.Ordering.Features.Checkout;
 
 /// <summary>
-/// Cash-on-delivery checkout: prices the cart from Catalog, reserves the stock, finds or creates the customer by
-/// phone and places the order. Checking out the same cart again returns the order it already became.
+/// Cash-on-delivery checkout: prices the cart from Catalog, adds the delivery zone's fee and VAT from Settings,
+/// reserves the stock, finds or creates the customer by phone and places the order. Checking out the same cart again
+/// returns the order it already became.
 /// </summary>
 public static class Checkout
 {
-    public sealed record Command(Guid CartId, string Phone, string Name, AddressInput Address, string? Note);
+    /// <param name="DeliveryZoneId">One of the store's active delivery zones; required unless the store has none.</param>
+    public sealed record Command(Guid CartId, string Phone, string Name, AddressInput Address, Guid? DeliveryZoneId, string? Note);
 
     public sealed record AddressInput(string Line1, string? Line2, string Area, string City, string? PostalCode);
 
@@ -49,6 +52,7 @@ public static class Checkout
         ICatalogQueries catalog,
         ICustomerDirectory customers,
         IInventoryReservations reservations,
+        ISettingsQueries settings,
         TimeProvider clock) : ICommandHandler<Command, Response>
     {
         public async Task<Result<Response>> HandleAsync(Command command, CancellationToken cancellationToken)
@@ -69,6 +73,12 @@ public static class Checkout
                 return OrderingErrors.CartEmpty;
             }
 
+            var delivery = await DeliveryAsync(command.DeliveryZoneId, cancellationToken);
+            if (delivery.IsFailure)
+            {
+                return delivery.Error;
+            }
+
             var priced = await PriceAsync(cart, cancellationToken);
             if (priced.IsFailure)
             {
@@ -86,13 +96,27 @@ public static class Checkout
                 return await CheckedOutOrderAsync(cart.Id, cancellationToken) ?? Result.Failure<Response>(reservation.Error);
             }
 
-            var placed = await PlaceAsync(cart, command, orderId, priced.Value, reservation.Value.ReservationId, cancellationToken);
+            var placed = await PlaceAsync(cart, command, orderId, priced.Value, delivery.Value, reservation.Value.ReservationId, cancellationToken);
             if (placed.IsFailure || !placed.Value.Created)
             {
                 await reservations.ReleaseAsync(reservation.Value.ReservationId, cancellationToken);
             }
 
             return placed;
+        }
+
+        /// <summary>The chosen zone as Settings prices it now; no zone is allowed only while the store has none.</summary>
+        private async Task<Result<OrderDelivery?>> DeliveryAsync(Guid? deliveryZoneId, CancellationToken cancellationToken)
+        {
+            if (deliveryZoneId is not { } zoneId)
+            {
+                var zones = await settings.GetDeliveryZonesAsync(cancellationToken);
+                return zones.Count == 0 ? Result.Success<OrderDelivery?>(null) : OrderingErrors.DeliveryZoneRequired;
+            }
+
+            return await settings.GetDeliveryZoneAsync(zoneId, cancellationToken) is { } zone
+                ? new OrderDelivery(zone.Id, zone.Name, zone.Fee, zone.FreeDeliveryThreshold)
+                : OrderingErrors.UnknownDeliveryZone;
         }
 
         /// <summary>The cart's lines at the catalog's current prices; fails when any item is no longer for sale.</summary>
@@ -125,6 +149,7 @@ public static class Checkout
             Command command,
             Guid orderId,
             IReadOnlyList<OrderLineSpec> lines,
+            OrderDelivery? delivery,
             Guid reservationId,
             CancellationToken cancellationToken)
         {
@@ -134,6 +159,7 @@ public static class Checkout
                 return customer.Error;
             }
 
+            var vatRatePercent = (await settings.GetStoreSettingsAsync(cancellationToken)).VatRatePercent;
             var now = clock.GetUtcNow();
             var order = Order.PlaceCashOnDelivery(
                 orderId,
@@ -148,6 +174,8 @@ public static class Checkout
                     Optional(command.Address.PostalCode)),
                 command.Note,
                 lines,
+                delivery,
+                vatRatePercent,
                 reservationId,
                 now);
 
@@ -165,6 +193,9 @@ public static class Checkout
                 OrderNumber.Format(order.Number),
                 order.CustomerId,
                 order.PaymentMethod.ToString(),
+                order.Subtotal,
+                order.DeliveryFee,
+                order.Vat,
                 order.Total,
                 order.ReservationId,
                 [.. order.Lines.OrderBy(line => line.Position).Select(line => new OrderPlacedLine(line.VariantId, line.Sku, line.Quantity, line.UnitPrice))]));

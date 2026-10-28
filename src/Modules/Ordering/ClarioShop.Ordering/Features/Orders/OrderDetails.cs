@@ -14,7 +14,11 @@ public sealed record OrderDetails(
     DeliveryAddressItem DeliveryAddress,
     string? Note,
     IReadOnlyList<OrderLineItem> Lines,
+    DeliveryZoneItem? DeliveryZone,
     decimal Subtotal,
+    decimal DeliveryFee,
+    decimal VatRatePercent,
+    decimal Vat,
     decimal Total,
     DateTimeOffset PlacedAt,
     IReadOnlyList<StatusChangeItem> History)
@@ -35,13 +39,19 @@ public sealed record OrderDetails(
             order.DeliveryAddress.PostalCode),
         order.Note,
         [.. order.Lines.OrderBy(line => line.Position).Select(OrderLineItem.From)],
+        order.DeliveryZoneId is { } zoneId ? new DeliveryZoneItem(zoneId, order.DeliveryZoneName!) : null,
         order.Subtotal,
+        order.DeliveryFee,
+        order.VatRatePercent,
+        order.Vat,
         order.Total,
         order.PlacedAt,
         [.. order.History.OrderBy(change => change.ChangedAt).ThenBy(change => change.Id).Select(StatusChangeItem.From)]);
 }
 
 public sealed record DeliveryAddressItem(string Line1, string? Line2, string Area, string City, string? PostalCode);
+
+public sealed record DeliveryZoneItem(Guid Id, string Name);
 
 public sealed record OrderLineItem(
     Guid VariantId,

@@ -113,6 +113,8 @@ public sealed class OrderLifecycleTests
             new DeliveryAddress("House 12, Road 5", null, "Dhanmondi", "Dhaka", "1205"),
             note: null,
             [new OrderLineSpec(Guid.CreateVersion7(), Guid.CreateVersion7(), "Rice", "5kg", "RICE-5KG", 450m, 2)],
+            delivery: null,
+            vatRatePercent: 0m,
             Guid.CreateVersion7(),
             Now);
 }
