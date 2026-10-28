@@ -31,6 +31,24 @@ internal static class OrderingErrors
     public static readonly Error UnknownDeliveryZone =
         Error.Validation("deliveryZoneId", "The store does not deliver to this zone; choose one of its delivery zones.");
 
+    public static readonly Error PhoneRequired =
+        Error.Validation("phone", "Enter your mobile number, or sign in.");
+
+    public static readonly Error NameRequired =
+        Error.Validation("name", "Enter the name to deliver to.");
+
+    public static readonly Error NotShoppersPhone =
+        Error.Validation("phone", "You are signed in, so the order uses your account's mobile number; leave the phone out or send that number.");
+
+    public static readonly Error SavedAddressNeedsSignIn =
+        Error.Validation("savedAddressId", "Sign in to deliver to a saved address.");
+
+    public static readonly Error SavedAddressNotFound =
+        Error.Validation("savedAddressId", "This is not one of your saved addresses.");
+
+    public static readonly Error ShopperNotFound =
+        Error.NotFound("ordering.shopper_not_found", "Your customer account no longer exists; sign in again.");
+
     public static readonly Error OrderNotFound =
         Error.NotFound("ordering.order_not_found", "The order does not exist.");
 

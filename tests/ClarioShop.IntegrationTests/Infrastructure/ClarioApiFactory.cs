@@ -87,6 +87,19 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         return (await response.Content.ReadFromJsonAsync<TokenResponse>())!;
     }
 
+    /// <summary>Phone OTP sign-in with the code the recording SMS sender captured; returns the shopper's access token.</summary>
+    public async Task<string> SignInShopperAsync(string tenant, string phone)
+    {
+        using var client = CreateTenantClient(tenant);
+        var sent = await client.PostAsJsonAsync("/api/identity/otp", new { phone });
+        await sent.EnsureSuccessWithBodyAsync();
+        var normalized = (await sent.Content.ReadFromJsonAsync<OtpSentResponse>())!.Phone;
+
+        var response = await client.PostAsync("/api/identity/token", OtpGrant(phone, Sms.LatestCodeTo(normalized)));
+        await response.EnsureSuccessWithBodyAsync();
+        return (await response.Content.ReadFromJsonAsync<TokenResponse>())!.AccessToken;
+    }
+
     public static FormUrlEncodedContent PasswordGrant(string email, string password) => new(new Dictionary<string, string>
     {
         ["grant_type"] = "password",
@@ -188,6 +201,8 @@ public sealed record TokenResponse(
     [property: JsonPropertyName("refresh_token")] string? RefreshToken,
     [property: JsonPropertyName("token_type")] string TokenType,
     [property: JsonPropertyName("expires_in")] int ExpiresIn);
+
+public sealed record OtpSentResponse(string Phone, int ExpiresInSeconds);
 
 public sealed record TestTenant(string Identifier, string OwnerEmail, string OwnerPassword);
 
