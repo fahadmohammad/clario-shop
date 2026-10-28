@@ -5,6 +5,7 @@ using ClarioShop.Catalog.Contracts.Events;
 using ClarioShop.Catalog.Persistence;
 using ClarioShop.Customers.Contracts.Events;
 using ClarioShop.Customers.Persistence;
+using ClarioShop.Infrastructure.Email;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Sms;
 using ClarioShop.Infrastructure.Tenancy;
@@ -32,6 +33,8 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
     public EventRecorder Events { get; } = new();
 
     public RecordingSmsSender Sms { get; } = new();
+
+    public RecordingEmailSender Email { get; } = new();
 
     internal FakePaymentGateway Gateway { get; } = new();
 
@@ -160,6 +163,8 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         // A rotated refresh token is rejected at once, so the tests can see rotation without waiting.
         builder.UseSetting("Auth:RefreshTokenReuseLeeway", "00:00:00");
         builder.UseSetting("Messaging:OutboxPollInterval", "00:00:00.200");
+        // Tests run the notification retry job themselves, at chosen times; the timer must not race them.
+        builder.UseSetting("Notifications:RetryInterval", "01:00:00");
         // Low enough that a test reaches it quickly; every test uses its own shop, so the counts never collide.
         builder.UseSetting("Auth:Otp:RequestsPerAddress", "5");
 
@@ -167,6 +172,7 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         {
             services.AddSingleton(Events);
             services.AddSingleton<ISmsSender>(Sms);
+            services.AddSingleton<IEmailSender>(Email);
             services.AddScoped<IPaymentGateway>(_ => Gateway);
             services.AddIntegrationEventHandler<ProductCreated, RecordingProductCreatedHandler, CatalogDbContext>("tests");
             services.AddIntegrationEventHandler<CustomerCreated, RecordingCustomerCreatedHandler, CustomersDbContext>("tests");

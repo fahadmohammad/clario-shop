@@ -93,10 +93,15 @@ choice is configuration later, never a blocker now.
   - Look a transaction up at the gateway by transaction id; a failed, cancelled or expired payment publishes `PaymentFailed`, Ordering cancels the order and Inventory releases the stock (never on the shopper's redirect or an IPN alone).
   - Background job every 15 minutes: for pending gateway payments, query the gateway by transaction id and settle them exactly as the IPN would.
 
-### 10. notifications
-- [ ] **Notifications module**
-  - Consumes `OrderPlaced`, `OrderConfirmed`, `OrderShipped`, `OrderDelivered`; sends SMS (`ISmsSender`) and email (`IEmailSender`) from per-tenant templates (Bangla and English), logging implementations by default.
+### 10a. notifications
+- [x] **Notifications module** — #18
+  - Consumes `OrderPlaced`, `OrderConfirmed`, `OrderShipped`, `OrderDelivered`; sends SMS (`ISmsSender`) and email (`IEmailSender`) from built-in Bangla and English templates in the store's default language, logging implementations by default.
   - `NotificationLog` for audit and retries; idempotent per event.
+
+### 10b. notification-templates
+- [ ] **Per-tenant notification templates**
+  - `NotificationTemplate` in Settings (per event, channel and language; the architecture doc puts it there): staff list, edit and reset to the built-in default (`settings.edit`), placeholders validated on save.
+  - Notifications renders a tenant's own template when it has one, the built-in default otherwise, read through `ISettingsQueries` (cached, invalidated on change).
 
 ### 11. reporting
 - [ ] **Basic reports**
