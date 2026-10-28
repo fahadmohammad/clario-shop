@@ -34,7 +34,7 @@ choice is configuration later, never a blocker now.
   - Done when: integration tests cover happy path, out-of-stock, unpublished variant, price snapshot unaffected by later price changes, idempotent checkout (same cart twice → one order).
 
 ### 3. ordering-lifecycle
-- [ ] **Order lifecycle and stock hand-off**
+- [x] **Order lifecycle and stock hand-off** — #7
   - Staff transitions `Placed → Confirmed → Packed → Shipped → Delivered`, plus `Cancelled` (before Shipped) and `Returned`; every change in `OrderStatusHistory`; invalid transitions are 409.
   - Events `OrderConfirmed`, `OrderCancelled`, `OrderShipped`, `OrderDelivered`. Inventory consumes `OrderConfirmed` (commit reservation → `OnlineSale` movements) and `OrderCancelled` (release).
   - Confirming after the 15-minute reservation expired: Ordering re-reserves through `IInventoryReservations` before confirming; if stock is gone the confirm fails with 409 and a clear message.

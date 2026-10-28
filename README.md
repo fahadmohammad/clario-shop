@@ -16,7 +16,7 @@ White-label retail platform for Bangladeshi businesses: an online store and a su
 | Catalog: categories, products, variants with barcodes and sold-by-weight, publish, storefront reads | Done |
 | Inventory: default location per tenant, append-only stock ledger, stock levels with optimistic concurrency, 15-minute checkout reservations, purchase receipts, adjustments with reason codes | Done (transfers, POS sales and the nightly drift check follow) |
 | Customers: one customer per Bangladeshi mobile number (any format), concurrency-safe find-or-create for checkout, addresses with one default, staff search | Done (loyalty later) |
-| Ordering: anonymous carts priced from Catalog, cash-on-delivery checkout that reserves stock and finds or creates the customer, price snapshots on order lines, per-tenant order numbers, idempotent per cart | Done (order lifecycle, delivery fees and VAT, prepaid checkout follow) |
+| Ordering: anonymous carts priced from Catalog, cash-on-delivery checkout that reserves stock and finds or creates the customer, price snapshots on order lines, per-tenant order numbers, idempotent per cart; staff order lifecycle (confirm, pack, ship, deliver, cancel, return) with Inventory selling, releasing or reversing the stock, and an Order Handler role | Done (delivery fees and VAT, prepaid checkout follow) |
 | Transactional outbox and inbox, RabbitMQ transport (in-process fallback) | Done |
 | Aspire AppHost: PostgreSQL, Redis, RabbitMQ, generated secrets | Done |
 | CI: build (warnings as errors), format check, unit, architecture and integration tests | Done |
