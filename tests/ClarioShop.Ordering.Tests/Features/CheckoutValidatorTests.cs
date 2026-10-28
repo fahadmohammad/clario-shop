@@ -56,6 +56,28 @@ public sealed class CheckoutValidatorTests
         Assert.Contains(result.Errors, error => error.PropertyName == nameof(Checkout.Request.Name));
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("CashOnDelivery")]
+    [InlineData("sslcommerz")]
+    public void Validate_KnownPaymentMethod_IsValid(string? paymentMethod)
+    {
+        var result = validator.Validate(Request(Typed, savedAddressId: null) with { PaymentMethod = paymentMethod });
+
+        Assert.True(result.IsValid);
+    }
+
+    [Theory]
+    [InlineData("Bitcoin")]
+    [InlineData("1")]
+    [InlineData("")]
+    public void Validate_UnknownPaymentMethod_IsInvalid(string paymentMethod)
+    {
+        var result = validator.Validate(Request(Typed, savedAddressId: null) with { PaymentMethod = paymentMethod });
+
+        Assert.Contains(result.Errors, error => error.PropertyName == nameof(Checkout.Request.PaymentMethod));
+    }
+
     private static Checkout.Request Request(Checkout.AddressInput? address, Guid? savedAddressId) =>
         new(Guid.CreateVersion7(), "01712-345678", "Rahim Uddin", address, savedAddressId, DeliveryZoneId: null, Note: null);
 }

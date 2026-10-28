@@ -14,7 +14,7 @@ internal sealed class CheckoutEndpoints : IEndpointGroup
                     : TypedResults.Ok(placed.Order)))
             .WithTags("Ordering")
             .WithName("Checkout")
-            .WithSummary("Place a cash-on-delivery order from a cart, as a guest or a signed-in shopper (who may use a saved address). Repeating it for the same cart returns the same order (200).")
+            .WithSummary("Place an order from a cart, as a guest or a signed-in shopper (who may use a saved address). Cash on delivery by default; with paymentMethod SslCommerz the order waits in PendingPayment until it is paid (start paying with POST /api/payments/orders/{orderId}/gateway-sessions). Repeating it for the same cart returns the same order (200).")
             .WithValidation<Checkout.Request>()
             .Produces<OrderDetails>(StatusCodes.Status201Created)
             .Produces<OrderDetails>()

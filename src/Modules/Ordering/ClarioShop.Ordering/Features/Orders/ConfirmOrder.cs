@@ -27,6 +27,11 @@ public static class ConfirmOrder
                 return OrderingErrors.OrderNotFound;
             }
 
+            if (order.Status == OrderStatus.PendingPayment)
+            {
+                return OrderingErrors.AwaitingPayment;
+            }
+
             if (!order.CanMoveTo(OrderStatus.Confirmed))
             {
                 return OrderingErrors.InvalidTransition(order.Status, OrderStatus.Confirmed);

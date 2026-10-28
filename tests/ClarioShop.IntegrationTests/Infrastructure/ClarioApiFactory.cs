@@ -11,6 +11,7 @@ using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Ordering.Contracts.Events;
 using ClarioShop.Ordering.Persistence;
 using ClarioShop.Payments.Contracts.Events;
+using ClarioShop.Payments.Gateways;
 using ClarioShop.Payments.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -31,6 +32,8 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
     public EventRecorder Events { get; } = new();
 
     public RecordingSmsSender Sms { get; } = new();
+
+    internal FakePaymentGateway Gateway { get; } = new();
 
     public async ValueTask InitializeAsync()
     {
@@ -164,6 +167,7 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         {
             services.AddSingleton(Events);
             services.AddSingleton<ISmsSender>(Sms);
+            services.AddScoped<IPaymentGateway>(_ => Gateway);
             services.AddIntegrationEventHandler<ProductCreated, RecordingProductCreatedHandler, CatalogDbContext>("tests");
             services.AddIntegrationEventHandler<CustomerCreated, RecordingCustomerCreatedHandler, CustomersDbContext>("tests");
             services.AddIntegrationEventHandler<OrderPlaced, RecordingOrderPlacedHandler, OrderingDbContext>("tests");

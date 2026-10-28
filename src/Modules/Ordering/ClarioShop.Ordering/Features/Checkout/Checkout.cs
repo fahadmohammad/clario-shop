@@ -6,13 +6,15 @@ using ClarioShop.Ordering.Domain;
 using ClarioShop.Ordering.Features.Carts;
 using ClarioShop.Ordering.Features.Orders;
 using ClarioShop.Ordering.Persistence;
+using ClarioShop.Payments.Contracts;
 using ClarioShop.Settings.Contracts;
 
 namespace ClarioShop.Ordering.Features.Checkout;
 
 /// <summary>
-/// Cash-on-delivery checkout: prices the cart from Catalog, adds the delivery zone's fee and VAT from Settings,
-/// reserves the stock, finds or creates the customer by phone and places the order. Checking out the same cart again
+/// Checkout: prices the cart from Catalog, adds the delivery zone's fee and VAT from Settings, reserves the stock,
+/// finds or creates the customer by phone and places the order. A cash-on-delivery order is Placed and waits for staff;
+/// a prepaid one (SSLCommerz) is PendingPayment until Payments reports it paid. Checking out the same cart again
 /// returns the order it already became. A signed-in shopper's order is always their own: it uses the phone number of
 /// their account and may deliver to one of their saved addresses.
 /// </summary>
@@ -23,6 +25,7 @@ public static class Checkout
     /// <param name="Address">A delivery address typed in at checkout; send this or <paramref name="SavedAddressId"/>.</param>
     /// <param name="SavedAddressId">One of the signed-in shopper's saved addresses.</param>
     /// <param name="DeliveryZoneId">One of the store's active delivery zones; required unless the store has none.</param>
+    /// <param name="PaymentMethod"><c>CashOnDelivery</c> (the default) or <c>SslCommerz</c> to pay up front online.</param>
     public sealed record Request(
         Guid CartId,
         string? Phone,
@@ -30,7 +33,8 @@ public static class Checkout
         AddressInput? Address,
         Guid? SavedAddressId,
         Guid? DeliveryZoneId,
-        string? Note);
+        string? Note,
+        string? PaymentMethod = null);
 
     /// <param name="ShopperCustomerId">The signed-in shopper's customer id, from the token; null for a guest.</param>
     public sealed record Command(Request Request, Guid? ShopperCustomerId);
@@ -52,6 +56,9 @@ public static class Checkout
                 .When(request => request.Phone is not null);
             RuleFor(request => request.Name).NotEmpty().MaximumLength(200).When(request => request.Name is not null);
             RuleFor(request => request.Note).MaximumLength(500);
+            RuleFor(request => request.PaymentMethod)
+                .Must(method => ParsePaymentMethod(method) is not null)
+                .WithMessage("Choose CashOnDelivery or SslCommerz.");
             RuleFor(request => request.Address).NotNull().When(request => request.SavedAddressId is null)
                 .WithMessage("Enter a delivery address or choose a saved one.");
             RuleFor(request => request.Address).Null().When(request => request.SavedAddressId is not null)
@@ -73,6 +80,7 @@ public static class Checkout
         ICustomerDirectory customers,
         IInventoryReservations reservations,
         ISettingsQueries settings,
+        IPaymentMethods paymentMethods,
         TimeProvider clock) : ICommandHandler<Command, Response>
     {
         public async Task<Result<Response>> HandleAsync(Command command, CancellationToken cancellationToken)
@@ -91,6 +99,12 @@ public static class Checkout
             if (cart.Items.Count == 0)
             {
                 return OrderingErrors.CartEmpty;
+            }
+
+            var paymentMethod = ParsePaymentMethod(command.Request.PaymentMethod) ?? throw new ArgumentException("Validate the request first.", nameof(command));
+            if (!await paymentMethods.IsAvailableAsync(paymentMethod.ToString(), cancellationToken))
+            {
+                return OrderingErrors.PaymentMethodUnavailable(paymentMethod.ToString());
             }
 
             var recipient = await RecipientAsync(command, cancellationToken);
@@ -122,7 +136,7 @@ public static class Checkout
                 return await CheckedOutOrderAsync(cart.Id, cancellationToken) ?? Result.Failure<Response>(reservation.Error);
             }
 
-            var placed = await PlaceAsync(cart, recipient.Value, command.Request.Note, orderId, priced.Value, delivery.Value, reservation.Value.ReservationId, cancellationToken);
+            var placed = await PlaceAsync(cart, recipient.Value, command.Request.Note, orderId, priced.Value, delivery.Value, paymentMethod, reservation.Value.ReservationId, cancellationToken);
             if (placed.IsFailure || !placed.Value.Created)
             {
                 await reservations.ReleaseAsync(reservation.Value.ReservationId, cancellationToken);
@@ -231,6 +245,7 @@ public static class Checkout
             Guid orderId,
             IReadOnlyList<OrderLineSpec> lines,
             OrderDelivery? delivery,
+            PaymentMethod paymentMethod,
             Guid reservationId,
             CancellationToken cancellationToken)
         {
@@ -242,7 +257,7 @@ public static class Checkout
 
             var vatRatePercent = (await settings.GetStoreSettingsAsync(cancellationToken)).VatRatePercent;
             var now = clock.GetUtcNow();
-            var order = Order.PlaceCashOnDelivery(
+            var order = Order.Place(
                 orderId,
                 await db.NextOrderNumberAsync(cancellationToken),
                 cart.Id,
@@ -252,6 +267,7 @@ public static class Checkout
                 lines,
                 delivery,
                 vatRatePercent,
+                paymentMethod,
                 reservationId,
                 now);
 
@@ -313,6 +329,12 @@ public static class Checkout
 
         private static string? Optional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
+
+    /// <summary>The requested payment method; cash on delivery when none is given, null when it is not one we take.</summary>
+    private static PaymentMethod? ParsePaymentMethod(string? method) =>
+        method is null
+            ? PaymentMethod.CashOnDelivery
+            : Enum.GetValues<PaymentMethod>().Cast<PaymentMethod?>().FirstOrDefault(known => string.Equals(known.ToString(), method, StringComparison.OrdinalIgnoreCase));
 
     /// <param name="Phone">As given at checkout; the Customers module normalizes it.</param>
     private sealed record Recipient(string Phone, string Name, DeliveryAddress Address);

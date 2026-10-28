@@ -83,7 +83,7 @@ choice is configuration later, never a blocker now.
   - Gateway behind `IPaymentGateway` (create a session, validate a transaction) with the SSLCommerz implementation; tests use a stub HTTP handler (no network).
 
 ### 9b. prepaid-checkout
-- [~] **Prepaid checkout with SSLCommerz**
+- [x] **Prepaid checkout with SSLCommerz** — #16
   - Prepaid orders start in `PendingPayment`; Payments creates a gateway session and returns the redirect URL.
   - IPN webhook endpoint (anonymous, tenant from host): store raw payload in `GatewayWebhookLog`, validate with the gateway validation API (never trust the redirect), then `PaymentSucceeded`. Ordering confirms; Inventory commits.
   - Tests use a fake `IPaymentGateway` (no network).

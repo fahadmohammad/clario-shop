@@ -1,4 +1,5 @@
 using ClarioShop.SharedKernel.Domain;
+using ClarioShop.SharedKernel.Results;
 
 namespace ClarioShop.Payments.Domain;
 
@@ -8,6 +9,9 @@ namespace ClarioShop.Payments.Domain;
 /// </summary>
 internal sealed class Payment : Entity
 {
+    /// <summary>Every amount is in Bangladeshi taka.</summary>
+    public const string Currency = "BDT";
+
     private readonly List<PaymentAttempt> attempts = [];
 
     private Payment()
@@ -57,4 +61,86 @@ internal sealed class Payment : Entity
         payment.attempts.Add(PaymentAttempt.Create(payment.Id, AttemptOutcome.Succeeded, now, userId, note));
         return payment;
     }
+
+    /// <summary>
+    /// A payment the shopper makes on a gateway's hosted page. It stays Pending until the gateway confirms it; each
+    /// session opened for it is an attempt (<see cref="StartAttempt"/>), e.g. when the shopper retries.
+    /// </summary>
+    public static Payment StartOnline(Guid orderId, string orderNumber, PaymentMethod method, decimal amount, DateTimeOffset now)
+    {
+        if (method == PaymentMethod.CashOnDelivery)
+        {
+            throw new ArgumentException("Cash is recorded with CashCollected.", nameof(method));
+        }
+
+        if (amount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount), amount, "A payment must be for more than zero.");
+        }
+
+        return new Payment
+        {
+            Id = Guid.CreateVersion7(),
+            OrderId = orderId,
+            OrderNumber = orderNumber,
+            Method = method,
+            Status = PaymentStatus.Pending,
+            Amount = amount,
+            CreatedAt = now,
+        };
+    }
+
+    /// <summary>Opens a new gateway attempt; its id is the transaction id the gateway reports back.</summary>
+    public PaymentAttempt StartAttempt(DateTimeOffset now)
+    {
+        if (Status != PaymentStatus.Pending)
+        {
+            throw new InvalidOperationException($"A {Status} payment takes no more attempts.");
+        }
+
+        var attempt = PaymentAttempt.Create(Id, AttemptOutcome.Pending, now, userId: null, note: null);
+        attempts.Add(attempt);
+        return attempt;
+    }
+
+    /// <summary>
+    /// Settles the payment from what the gateway confirmed for one of its attempts. The receipt must be for exactly the
+    /// amount asked, in taka, and not held for review. Settling the same attempt again changes nothing; another
+    /// attempt paid after the payment already succeeded is recorded as paid twice, for staff to refund.
+    /// </summary>
+    public Result<SettleOutcome> Settle(Guid attemptId, GatewayReceipt receipt, DateTimeOffset now)
+    {
+        var attempt = attempts.SingleOrDefault(a => a.Id == attemptId)
+            ?? throw new ArgumentException($"Attempt {attemptId} is not one of payment {Id}'s.", nameof(attemptId));
+
+        if (attempt.Outcome == AttemptOutcome.Succeeded)
+        {
+            return SettleOutcome.AlreadySettled;
+        }
+
+        if (!string.Equals(receipt.Currency, Currency, StringComparison.OrdinalIgnoreCase) || receipt.Amount != Amount)
+        {
+            return PaymentsErrors.AmountMismatch(Amount, receipt.Amount, receipt.Currency);
+        }
+
+        if (receipt.IsRisky)
+        {
+            return PaymentsErrors.HeldForReview;
+        }
+
+        if (Status == PaymentStatus.Succeeded)
+        {
+            attempt.Succeed(receipt, now, "Paid again after the payment had already succeeded; refund this one.");
+            return SettleOutcome.PaidTwice;
+        }
+
+        attempt.Succeed(receipt, now, note: null);
+        Status = PaymentStatus.Succeeded;
+        CompletedAt = now;
+        return SettleOutcome.Settled;
+    }
+
+    /// <summary>The gateway would not open a session for the attempt; the payment stays pending for another try.</summary>
+    public void FailAttempt(Guid attemptId, string reason, DateTimeOffset now) =>
+        attempts.Single(a => a.Id == attemptId).Fail(reason, now);
 }

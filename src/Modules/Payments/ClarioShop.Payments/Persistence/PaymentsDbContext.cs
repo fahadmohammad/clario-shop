@@ -14,9 +14,11 @@ internal sealed class PaymentsDbContext(DbContextOptions<PaymentsDbContext> opti
 
     public DbSet<Payment> Payments => Set<Payment>();
 
+    public DbSet<GatewayWebhookLog> GatewayWebhookLogs => Set<GatewayWebhookLog>();
+
     /// <summary>
     /// Serializes recording payments for one order until the current transaction ends, so two collections at once
-    /// cannot both pass the outstanding-amount check.
+    /// cannot both pass the outstanding-amount check, and two gateway callbacks cannot both settle one payment.
     /// </summary>
     public async Task LockOrderAsync(Guid orderId, CancellationToken cancellationToken) =>
         await Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({OrderLockClass}, hashtext({orderId.ToString()}))", cancellationToken);
