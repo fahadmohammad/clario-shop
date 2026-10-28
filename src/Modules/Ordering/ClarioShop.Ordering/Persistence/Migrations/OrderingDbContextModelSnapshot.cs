@@ -138,6 +138,10 @@ namespace ClarioShop.Ordering.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<decimal>("AmountPaid")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<Guid>("CartId")
                         .HasColumnType("uuid");
 
@@ -310,6 +314,33 @@ namespace ClarioShop.Ordering.Persistence.Migrations
                     b.ToTable("OrderLines", "ordering");
                 });
 
+            modelBuilder.Entity("ClarioShop.Ordering.Domain.OrderPayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderPayments", "ordering");
+                });
+
             modelBuilder.Entity("ClarioShop.Ordering.Domain.OrderStatusChange", b =>
                 {
                     b.Property<Guid>("Id")
@@ -362,6 +393,15 @@ namespace ClarioShop.Ordering.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ClarioShop.Ordering.Domain.OrderPayment", b =>
+                {
+                    b.HasOne("ClarioShop.Ordering.Domain.Order", null)
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ClarioShop.Ordering.Domain.OrderStatusChange", b =>
                 {
                     b.HasOne("ClarioShop.Ordering.Domain.Order", null)
@@ -381,6 +421,8 @@ namespace ClarioShop.Ordering.Persistence.Migrations
                     b.Navigation("History");
 
                     b.Navigation("Lines");
+
+                    b.Navigation("Payments");
                 });
 #pragma warning restore 612, 618
         }

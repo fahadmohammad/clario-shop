@@ -27,6 +27,8 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(order => order.VatRatePercent).HasPrecision(5, 2);
         builder.Property(order => order.Vat).HasPrecision(18, 2);
         builder.Property(order => order.Total).HasPrecision(18, 2);
+        builder.Property(order => order.AmountPaid).HasPrecision(18, 2);
+        builder.Ignore(order => order.PaymentStatus);
         builder.Property(order => order.RowVersion).IsRowVersion();
 
         builder.ComplexProperty(order => order.DeliveryAddress, address =>
@@ -43,5 +45,8 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.HasMany(order => order.History).WithOne().HasForeignKey(change => change.OrderId).OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(order => order.History).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(order => order.Payments).WithOne().HasForeignKey(payment => payment.OrderId).OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(order => order.Payments).UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

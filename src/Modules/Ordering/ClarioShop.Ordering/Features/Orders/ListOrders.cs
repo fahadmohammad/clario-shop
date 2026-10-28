@@ -18,6 +18,7 @@ public static class ListOrders
         string CustomerName,
         string CustomerPhone,
         decimal Total,
+        string PaymentStatus,
         DateTimeOffset PlacedAt,
         DateTimeOffset UpdatedAt);
 
@@ -62,6 +63,7 @@ public static class ListOrders
                     order.CustomerName,
                     order.CustomerPhone,
                     order.Total,
+                    order.AmountPaid,
                     order.PlacedAt,
                     order.UpdatedAt,
                 })
@@ -77,6 +79,7 @@ public static class ListOrders
                     order.CustomerName,
                     order.CustomerPhone,
                     order.Total,
+                    Order.PaymentStatusFor(order.Total, order.AmountPaid).ToString(),
                     order.PlacedAt,
                     order.UpdatedAt))
                 .ToList();
