@@ -2,12 +2,14 @@ using ClarioShop.Api.Setup;
 using ClarioShop.Catalog;
 using ClarioShop.Customers;
 using ClarioShop.Identity;
+using ClarioShop.Infrastructure.Email;
 using ClarioShop.Infrastructure.Endpoints;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Security;
 using ClarioShop.Infrastructure.Sms;
 using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Inventory;
+using ClarioShop.Notifications;
 using ClarioShop.Ordering;
 using ClarioShop.Payments;
 using ClarioShop.Platform;
@@ -38,6 +40,7 @@ builder.Services.AddClarioTenancy(builder.Configuration);
 builder.Services.AddClarioMessaging(builder.Configuration, useRabbitMq);
 builder.Services.AddPermissionAuthorization();
 builder.Services.AddClarioSms();
+builder.Services.AddClarioEmail();
 builder.Services.AddClarioRateLimiting(builder.Configuration);
 builder.Services.AddClarioCors(builder.Configuration);
 
@@ -49,7 +52,8 @@ builder.Services
     .AddCustomersModule()
     .AddOrderingModule()
     .AddPaymentsModule(builder.Configuration)
-    .AddSettingsModule();
+    .AddSettingsModule()
+    .AddNotificationsModule(builder.Configuration);
 
 var app = builder.Build();
 

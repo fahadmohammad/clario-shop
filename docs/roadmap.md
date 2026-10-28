@@ -94,7 +94,7 @@ choice is configuration later, never a blocker now.
   - Background job every 15 minutes: for pending gateway payments, query the gateway by transaction id and settle them exactly as the IPN would.
 
 ### 10a. notifications
-- [~] **Notifications module**
+- [x] **Notifications module** — #18
   - Consumes `OrderPlaced`, `OrderConfirmed`, `OrderShipped`, `OrderDelivered`; sends SMS (`ISmsSender`) and email (`IEmailSender`) from built-in Bangla and English templates in the store's default language, logging implementations by default.
   - `NotificationLog` for audit and retries; idempotent per event.
 

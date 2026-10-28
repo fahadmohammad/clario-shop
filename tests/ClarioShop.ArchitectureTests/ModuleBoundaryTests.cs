@@ -8,6 +8,8 @@ using ClarioShop.Identity.Contracts;
 using ClarioShop.Infrastructure.Endpoints;
 using ClarioShop.Inventory;
 using ClarioShop.Inventory.Contracts;
+using ClarioShop.Notifications;
+using ClarioShop.Notifications.Contracts;
 using ClarioShop.Ordering;
 using ClarioShop.Ordering.Contracts;
 using ClarioShop.Payments;
@@ -29,6 +31,7 @@ public sealed class ModuleBoundaryTests
         ["ClarioShop.Customers"] = typeof(CustomersModule).Assembly,
         ["ClarioShop.Identity"] = typeof(IdentityModule).Assembly,
         ["ClarioShop.Inventory"] = typeof(InventoryModule).Assembly,
+        ["ClarioShop.Notifications"] = typeof(NotificationsModule).Assembly,
         ["ClarioShop.Ordering"] = typeof(OrderingModule).Assembly,
         ["ClarioShop.Payments"] = typeof(PaymentsModule).Assembly,
         ["ClarioShop.Platform"] = typeof(PlatformModule).Assembly,
@@ -41,6 +44,7 @@ public sealed class ModuleBoundaryTests
         ["ClarioShop.Customers.Contracts"] = typeof(ICustomerDirectory).Assembly,
         ["ClarioShop.Identity.Contracts"] = typeof(SystemRoles).Assembly,
         ["ClarioShop.Inventory.Contracts"] = typeof(IInventoryReservations).Assembly,
+        ["ClarioShop.Notifications.Contracts"] = typeof(NotificationsPermissions).Assembly,
         ["ClarioShop.Ordering.Contracts"] = typeof(OrderingPermissions).Assembly,
         ["ClarioShop.Payments.Contracts"] = typeof(PaymentsPermissions).Assembly,
         ["ClarioShop.Settings.Contracts"] = typeof(ISettingsQueries).Assembly,
@@ -85,6 +89,7 @@ public sealed class ModuleBoundaryTests
                 "ClarioShop.Customers",
                 "ClarioShop.Identity",
                 "ClarioShop.Inventory",
+                "ClarioShop.Notifications",
                 "ClarioShop.Ordering",
                 "ClarioShop.Payments",
                 "ClarioShop.Platform",
@@ -99,7 +104,7 @@ public sealed class ModuleBoundaryTests
     {
         var result = Types.InAssembly(typeof(IEndpointGroup).Assembly)
             .ShouldNot()
-            .HaveDependencyOnAny("ClarioShop.Catalog", "ClarioShop.Customers", "ClarioShop.Identity", "ClarioShop.Inventory", "ClarioShop.Ordering", "ClarioShop.Payments", "ClarioShop.Platform", "ClarioShop.Settings")
+            .HaveDependencyOnAny("ClarioShop.Catalog", "ClarioShop.Customers", "ClarioShop.Identity", "ClarioShop.Inventory", "ClarioShop.Notifications", "ClarioShop.Ordering", "ClarioShop.Payments", "ClarioShop.Platform", "ClarioShop.Settings")
             .GetResult();
 
         Assert.True(result.IsSuccessful, Describe(result));
@@ -110,6 +115,7 @@ public sealed class ModuleBoundaryTests
     [InlineData("ClarioShop.Customers")]
     [InlineData("ClarioShop.Identity")]
     [InlineData("ClarioShop.Inventory")]
+    [InlineData("ClarioShop.Notifications")]
     [InlineData("ClarioShop.Ordering")]
     [InlineData("ClarioShop.Payments")]
     [InlineData("ClarioShop.Platform")]
@@ -130,6 +136,7 @@ public sealed class ModuleBoundaryTests
     [InlineData("ClarioShop.Customers")]
     [InlineData("ClarioShop.Identity")]
     [InlineData("ClarioShop.Inventory")]
+    [InlineData("ClarioShop.Notifications")]
     [InlineData("ClarioShop.Ordering")]
     [InlineData("ClarioShop.Payments")]
     [InlineData("ClarioShop.Platform")]

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Notifications\ClarioShop.Notifications\ClarioShop.Notifications.csproj" />
+  </ItemGroup>
+</Project>
