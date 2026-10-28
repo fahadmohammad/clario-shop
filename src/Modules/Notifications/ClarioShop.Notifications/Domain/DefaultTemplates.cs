@@ -57,6 +57,10 @@ internal static class DefaultTemplates
             "প্রিয় {CustomerName},\n\nআপনার অর্ডার {OrderNumber} পৌঁছে গেছে। আমাদের সাথে কেনাকাটার জন্য ধন্যবাদ!\n\n{StoreName}"),
     };
 
+    /// <summary>Every built-in template by event, channel and language.</summary>
+    public static IEnumerable<(OrderNotificationKind Kind, NotificationChannel Channel, string Language, MessageTemplate Template)> All =>
+        Templates.Select(entry => (entry.Key.Item1, entry.Key.Item2, entry.Key.Item3, entry.Value));
+
     /// <summary>The language messages are written in: <paramref name="language"/> when there are templates in it, English otherwise.</summary>
     public static string LanguageFor(string? language) =>
         string.Equals(language, Bangla, StringComparison.OrdinalIgnoreCase) ? Bangla : English;

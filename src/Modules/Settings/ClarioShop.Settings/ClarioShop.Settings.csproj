@@ -7,6 +7,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClarioShop.Settings.Contracts\ClarioShop.Settings.Contracts.csproj" />
+    <ProjectReference Include="..\..\Notifications\ClarioShop.Notifications.Contracts\ClarioShop.Notifications.Contracts.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\ClarioShop.Infrastructure\ClarioShop.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>

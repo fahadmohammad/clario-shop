@@ -14,4 +14,9 @@ internal static class MessagePlaceholders
 
     /// <summary>What the shopper pays, in the store's currency format, e.g. <c>৳1,250</c>. Only when the order is placed.</summary>
     public const string Total = "Total";
+
+    /// <summary>The placeholders that have a value for this kind of message.</summary>
+    public static IReadOnlyList<string> For(OrderNotificationKind kind) => kind == OrderNotificationKind.OrderPlaced
+        ? [StoreName, CustomerName, OrderNumber, Total]
+        : [StoreName, CustomerName, OrderNumber];
 }

@@ -14,4 +14,7 @@ public interface ISettingsQueries
 
     /// <summary>An active delivery zone; null when it does not exist or is inactive.</summary>
     Task<DeliveryZoneInfo?> GetDeliveryZoneAsync(Guid deliveryZoneId, CancellationToken cancellationToken);
+
+    /// <summary>The store's own notification templates; a message without one uses the built-in text.</summary>
+    Task<IReadOnlyList<NotificationTemplateInfo>> GetNotificationTemplatesAsync(CancellationToken cancellationToken);
 }

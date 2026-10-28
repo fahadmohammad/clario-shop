@@ -99,7 +99,7 @@ choice is configuration later, never a blocker now.
   - `NotificationLog` for audit and retries; idempotent per event.
 
 ### 10b. notification-templates
-- [ ] **Per-tenant notification templates**
+- [x] **Per-tenant notification templates** — #19
   - `NotificationTemplate` in Settings (per event, channel and language; the architecture doc puts it there): staff list, edit and reset to the built-in default (`settings.edit`), placeholders validated on save.
   - Notifications renders a tenant's own template when it has one, the built-in default otherwise, read through `ISettingsQueries` (cached, invalidated on change).
 
