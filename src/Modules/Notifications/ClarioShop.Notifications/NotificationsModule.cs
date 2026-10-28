@@ -1,6 +1,7 @@
 using ClarioShop.Infrastructure.Handlers;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Persistence;
+using ClarioShop.Notifications.Contracts;
 using ClarioShop.Notifications.Features.Orders;
 using ClarioShop.Notifications.Features.Retries;
 using ClarioShop.Notifications.Persistence;
@@ -23,6 +24,7 @@ public static class NotificationsModule
         services.Configure<NotificationOptions>(configuration.GetSection(NotificationOptions.SectionName));
         services.AddScoped<NotificationSender>();
         services.AddScoped<OrderNotifier>();
+        services.AddSingleton<INotificationTemplateDefaults, NotificationTemplateDefaults>();
         services.AddScoped<NotificationRetry>();
         services.AddHostedService<NotificationRetryService>();
 

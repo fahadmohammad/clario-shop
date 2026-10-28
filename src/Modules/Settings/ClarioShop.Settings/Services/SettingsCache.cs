@@ -20,6 +20,8 @@ internal sealed class SettingsCache(HybridCache cache, ITenantContext tenant)
 
     public string DeliveryZonesKey => $"{Tag}:delivery-zones";
 
+    public string NotificationTemplatesKey => $"{Tag}:notification-templates";
+
     /// <summary>Call after a change is saved, so the next read sees it.</summary>
     public ValueTask InvalidateAsync(CancellationToken cancellationToken) => cache.RemoveByTagAsync(Tag, cancellationToken);
 }

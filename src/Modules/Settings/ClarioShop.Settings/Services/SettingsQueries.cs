@@ -35,6 +35,18 @@ internal sealed class SettingsQueries(SettingsDbContext db, SettingsCache cache,
             [cache.Tag],
             cancellationToken);
 
+    public async Task<IReadOnlyList<NotificationTemplateInfo>> GetNotificationTemplatesAsync(CancellationToken cancellationToken) =>
+        await cache.Cache.GetOrCreateAsync(
+            cache.NotificationTemplatesKey,
+            async token =>
+            {
+                var templates = await db.NotificationTemplates.AsNoTracking().ToListAsync(token);
+                return templates.Select(template => template.ToInfo()).ToList();
+            },
+            SettingsCache.Options,
+            [cache.Tag],
+            cancellationToken);
+
     public async Task<DeliveryZoneInfo?> GetDeliveryZoneAsync(Guid deliveryZoneId, CancellationToken cancellationToken) =>
         (await GetDeliveryZonesAsync(cancellationToken)).FirstOrDefault(zone => zone.Id == deliveryZoneId);
 }

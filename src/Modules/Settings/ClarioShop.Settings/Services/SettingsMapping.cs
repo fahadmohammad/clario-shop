@@ -41,4 +41,7 @@ internal static class SettingsMapping
 
     public static DeliveryZoneInfo ToInfo(this DeliveryZone zone) =>
         new(zone.Id, zone.Name, [.. zone.Areas], zone.Fee, zone.FreeDeliveryThreshold);
+
+    public static NotificationTemplateInfo ToInfo(this NotificationTemplate template) =>
+        new(template.Event, template.Channel, template.Language, template.Subject, template.Body);
 }
