@@ -318,13 +318,14 @@ public sealed partial class OrderingTests(ClarioApiFactory api)
     private static async Task<CartResponse> GetCartAsync(HttpClient shopper, Guid cartId) =>
         (await shopper.GetFromJsonAsync<CartResponse>($"/api/ordering/carts/{cartId}", Cancel))!;
 
-    private static Task<HttpResponseMessage> CheckoutAsync(HttpClient shopper, Guid cartId, string phone = Phone) =>
+    private static Task<HttpResponseMessage> CheckoutAsync(HttpClient shopper, Guid cartId, string phone = Phone, Guid? deliveryZoneId = null) =>
         shopper.PostAsJsonAsync("/api/ordering/checkout", new
         {
             cartId,
             phone,
             name = "Rahim Uddin",
             address = new { line1 = "House 12, Road 5", area = "Dhanmondi", city = "Dhaka", postalCode = "1205" },
+            deliveryZoneId,
             note = "Call before coming",
         }, Cancel);
 
@@ -388,6 +389,34 @@ public sealed partial class OrderingTests(ClarioApiFactory api)
             return Assert.Single(page!.Items);
         }
 
+        public async Task<Guid> CreateDeliveryZoneAsync(string name, decimal fee, decimal? freeDeliveryThreshold, bool isActive = true)
+        {
+            var zone = await PostAsync<IdResponse>("/api/settings/delivery-zones", new
+            {
+                name,
+                areas = new[] { "Dhanmondi" },
+                fee,
+                freeDeliveryThreshold,
+                isActive,
+                sortOrder = 1,
+            });
+            return zone.Id;
+        }
+
+        public async Task SetVatRateAsync(decimal vatRatePercent)
+        {
+            var response = await Staff.PutAsJsonAsync("/api/settings/store", new
+            {
+                profile = new { storeName = "Clario Mart" },
+                invoicePrefix = "CM",
+                vatRatePercent,
+                currency = new { symbol = "৳", symbolPosition = "Before", decimalDigits = 0, grouping = "SouthAsian" },
+                defaultLanguage = "en",
+                languages = new[] { "en", "bn" },
+            }, Cancel);
+            await response.EnsureSuccessWithBodyAsync();
+        }
+
         /// <summary>Changes the catalog behind the API's back; Catalog has no edit endpoints yet.</summary>
         public async Task UpdateCatalogAsync(FormattableString sql)
         {
@@ -408,6 +437,8 @@ public sealed partial class OrderingTests(ClarioApiFactory api)
 
     private sealed record ProductResponse(Guid Id, string Slug);
 
+    private sealed record IdResponse(Guid Id);
+
     private sealed record StockPage(IReadOnlyList<StockRow> Items);
 
     private sealed record StockRow(Guid VariantId, decimal OnHand, decimal Reserved, decimal Available);
@@ -425,9 +456,15 @@ public sealed partial class OrderingTests(ClarioApiFactory api)
         string CustomerName,
         string CustomerPhone,
         IReadOnlyList<OrderLineResponse> Lines,
+        DeliveryZoneResponse? DeliveryZone,
         decimal Subtotal,
+        decimal DeliveryFee,
+        decimal VatRatePercent,
+        decimal Vat,
         decimal Total,
         IReadOnlyList<StatusChangeResponse> History);
+
+    private sealed record DeliveryZoneResponse(Guid Id, string Name);
 
     private sealed record OrderLineResponse(Guid VariantId, string Sku, decimal UnitPrice, decimal Quantity, decimal LineTotal);
 

@@ -25,6 +25,12 @@ internal static class OrderingErrors
     public static readonly Error QuantityTooLarge =
         Error.Validation("quantity", $"At most {Cart.MaxQuantity:0} of one item per order.");
 
+    public static readonly Error DeliveryZoneRequired =
+        Error.Validation("deliveryZoneId", "Choose a delivery zone.");
+
+    public static readonly Error UnknownDeliveryZone =
+        Error.Validation("deliveryZoneId", "The store does not deliver to this zone; choose one of its delivery zones.");
+
     public static readonly Error OrderNotFound =
         Error.NotFound("ordering.order_not_found", "The order does not exist.");
 

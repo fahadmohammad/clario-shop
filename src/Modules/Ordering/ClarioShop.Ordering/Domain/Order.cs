@@ -39,8 +39,22 @@ internal sealed class Order : Entity
 
     public OrderStatus Status { get; private set; }
 
+    /// <summary>The delivery zone chosen at checkout; null when the store had no delivery zones.</summary>
+    public Guid? DeliveryZoneId { get; private set; }
+
+    public string? DeliveryZoneName { get; private set; }
+
+    /// <summary>Sum of the line totals.</summary>
     public decimal Subtotal { get; private set; }
 
+    public decimal DeliveryFee { get; private set; }
+
+    /// <summary>The store's VAT rate when the order was placed, in percent.</summary>
+    public decimal VatRatePercent { get; private set; }
+
+    public decimal Vat { get; private set; }
+
+    /// <summary>Subtotal plus delivery fee plus VAT: what the shopper pays.</summary>
     public decimal Total { get; private set; }
 
     /// <summary>The Inventory reservation holding this order's stock.</summary>
@@ -66,6 +80,8 @@ internal sealed class Order : Entity
         DeliveryAddress deliveryAddress,
         string? note,
         IReadOnlyList<OrderLineSpec> lines,
+        OrderDelivery? delivery,
+        decimal vatRatePercent,
         Guid reservationId,
         DateTimeOffset now)
     {
@@ -85,6 +101,8 @@ internal sealed class Order : Entity
             DeliveryAddress = deliveryAddress,
             Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
             PaymentMethod = PaymentMethod.CashOnDelivery,
+            DeliveryZoneId = delivery?.ZoneId,
+            DeliveryZoneName = delivery?.ZoneName,
             Status = OrderStatus.Placed,
             ReservationId = reservationId,
             PlacedAt = now,
@@ -92,8 +110,12 @@ internal sealed class Order : Entity
         };
 
         order.lines.AddRange(lines.Select((spec, index) => OrderLine.Create(id, index + 1, spec)));
-        order.Subtotal = order.lines.Sum(line => line.LineTotal);
-        order.Total = order.Subtotal;
+        var charges = OrderCharges.Calculate(order.lines.Sum(line => line.LineTotal), delivery, vatRatePercent);
+        order.Subtotal = charges.Subtotal;
+        order.DeliveryFee = charges.DeliveryFee;
+        order.VatRatePercent = charges.VatRatePercent;
+        order.Vat = charges.Vat;
+        order.Total = charges.Total;
         order.history.Add(OrderStatusChange.Create(id, from: null, OrderStatus.Placed, now, userId: null, note: null));
         return order;
     }

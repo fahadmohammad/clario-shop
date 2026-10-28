@@ -154,6 +154,17 @@ namespace ClarioShop.Ordering.Persistence.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
 
+                    b.Property<decimal>("DeliveryFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("DeliveryZoneId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DeliveryZoneName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("Note")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -193,6 +204,14 @@ namespace ClarioShop.Ordering.Persistence.Migrations
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Vat")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("VatRatePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "DeliveryAddress", "ClarioShop.Ordering.Domain.Order.DeliveryAddress#DeliveryAddress", b1 =>
                         {

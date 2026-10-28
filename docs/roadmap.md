@@ -49,7 +49,7 @@ choice is configuration later, never a blocker now.
   - Permission `settings.edit`.
 
 ### 5. checkout-pricing
-- [~] **Delivery fees and VAT on orders**
+- [x] **Delivery fees and VAT on orders** — #10
   - Checkout takes a delivery zone, adds the zone fee (or free over threshold) and VAT from `ISettingsQueries`; order stores subtotal, delivery fee, VAT, total (all `numeric(18,2)`, rounding rules unit-tested).
   - Coupon groundwork is out of scope.
 

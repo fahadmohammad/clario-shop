@@ -18,12 +18,25 @@ public sealed class OrderTests
     }
 
     [Fact]
-    public void PlaceCashOnDelivery_TotalsAreSumOfLineTotals()
+    public void PlaceCashOnDelivery_NoZoneNoVat_TotalIsSumOfLineTotals()
     {
         var order = Place(Line("RICE-5KG", 450m, 2), Line("OIL-5L", 899.50m, 1));
 
-        Assert.Equal(1799.50m, order.Subtotal);
-        Assert.Equal(order.Subtotal, order.Total);
+        Assert.Equal((1799.50m, 0m, 0m, 1799.50m), (order.Subtotal, order.DeliveryFee, order.Vat, order.Total));
+        Assert.Null(order.DeliveryZoneId);
+    }
+
+    [Fact]
+    public void PlaceCashOnDelivery_WithZoneAndVat_StoresChargesAndZone()
+    {
+        var zone = new OrderDelivery(Guid.CreateVersion7(), "Inside Dhaka", 60m, FreeDeliveryThreshold: 2000m);
+
+        var order = Order.PlaceCashOnDelivery(
+            Guid.CreateVersion7(), 1, Guid.CreateVersion7(), Customer(), Address(), note: null,
+            [Line("RICE-5KG", 450m, 2), Line("OIL-5L", 899.50m, 1)], zone, vatRatePercent: 7.5m, Guid.CreateVersion7(), Now);
+
+        Assert.Equal((1799.50m, 60m, 7.5m, 134.96m, 1994.46m), (order.Subtotal, order.DeliveryFee, order.VatRatePercent, order.Vat, order.Total));
+        Assert.Equal((zone.ZoneId, "Inside Dhaka"), (order.DeliveryZoneId, order.DeliveryZoneName));
     }
 
     [Fact]
@@ -52,7 +65,7 @@ public sealed class OrderTests
     public void PlaceCashOnDelivery_TrimsBlankNoteToNull()
     {
         var order = Order.PlaceCashOnDelivery(
-            Guid.CreateVersion7(), 1, Guid.CreateVersion7(), Customer(), Address(), "   ", [Line("A", 1m, 1)], Guid.CreateVersion7(), Now);
+            Guid.CreateVersion7(), 1, Guid.CreateVersion7(), Customer(), Address(), "   ", [Line("A", 1m, 1)], delivery: null, vatRatePercent: 0m, Guid.CreateVersion7(), Now);
 
         Assert.Null(order.Note);
     }
@@ -66,7 +79,7 @@ public sealed class OrderTests
 
     private static Order Place(params OrderLineSpec[] lines) =>
         Order.PlaceCashOnDelivery(
-            Guid.CreateVersion7(), 42, Guid.CreateVersion7(), Customer(), Address(), note: null, lines, Guid.CreateVersion7(), Now);
+            Guid.CreateVersion7(), 42, Guid.CreateVersion7(), Customer(), Address(), note: null, lines, delivery: null, vatRatePercent: 0m, Guid.CreateVersion7(), Now);
 
     private static OrderLineSpec Line(string sku, decimal price, decimal quantity) =>
         new(Guid.CreateVersion7(), Guid.CreateVersion7(), $"Product {sku}", sku, sku, price, quantity);

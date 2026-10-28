@@ -21,7 +21,11 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(order => order.Note).HasMaxLength(500);
         builder.Property(order => order.PaymentMethod).HasConversion<string>().HasMaxLength(30);
         builder.Property(order => order.Status).HasConversion<string>().HasMaxLength(30);
+        builder.Property(order => order.DeliveryZoneName).HasMaxLength(100);
         builder.Property(order => order.Subtotal).HasPrecision(18, 2);
+        builder.Property(order => order.DeliveryFee).HasPrecision(18, 2);
+        builder.Property(order => order.VatRatePercent).HasPrecision(5, 2);
+        builder.Property(order => order.Vat).HasPrecision(18, 2);
         builder.Property(order => order.Total).HasPrecision(18, 2);
         builder.Property(order => order.RowVersion).IsRowVersion();
 
