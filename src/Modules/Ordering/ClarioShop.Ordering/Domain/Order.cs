@@ -1,4 +1,5 @@
 using ClarioShop.SharedKernel.Domain;
+using ClarioShop.SharedKernel.Results;
 
 namespace ClarioShop.Ordering.Domain;
 
@@ -95,5 +96,36 @@ internal sealed class Order : Entity
         order.Total = order.Subtotal;
         order.history.Add(OrderStatusChange.Create(id, from: null, OrderStatus.Placed, now, userId: null, note: null));
         return order;
+    }
+
+    public bool CanMoveTo(OrderStatus target) => OrderTransitions.IsAllowed(Status, target);
+
+    /// <summary>
+    /// Confirms the order. <paramref name="reservationId"/> is the Inventory reservation holding its stock now, which
+    /// differs from the one made at checkout when that one expired and the stock was reserved again.
+    /// </summary>
+    public Result Confirm(Guid reservationId, Guid? userId, string? note, DateTimeOffset now)
+    {
+        var moved = MoveTo(OrderStatus.Confirmed, userId, note, now);
+        if (moved.IsSuccess)
+        {
+            ReservationId = reservationId;
+        }
+
+        return moved;
+    }
+
+    /// <summary>Moves the order along its lifecycle (see <see cref="OrderTransitions"/>) and records the change.</summary>
+    public Result MoveTo(OrderStatus target, Guid? userId, string? note, DateTimeOffset now)
+    {
+        if (!CanMoveTo(target))
+        {
+            return OrderingErrors.InvalidTransition(Status, target);
+        }
+
+        history.Add(OrderStatusChange.Create(Id, Status, target, now, userId, string.IsNullOrWhiteSpace(note) ? null : note.Trim()));
+        Status = target;
+        UpdatedAt = now;
+        return Result.Success();
     }
 }

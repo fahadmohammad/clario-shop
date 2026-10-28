@@ -129,6 +129,106 @@ public sealed class StockReservationTests
         Assert.Equal(ReservationStatus.Expired, reservation.Status);
     }
 
+    [Fact]
+    public void CommitConfirmed_Active_CommitsAndReportsStockStillHeld()
+    {
+        var reservation = Create((Rice, 2));
+
+        var result = reservation.CommitConfirmed(Now.AddMinutes(5));
+
+        Assert.True(result.Value);
+        Assert.Equal(ReservationStatus.Committed, reservation.Status);
+    }
+
+    [Fact]
+    public void CommitConfirmed_DueButNotSwept_StillCommitsHeldStock()
+    {
+        var reservation = Create((Rice, 2));
+
+        var result = reservation.CommitConfirmed(Now.AddMinutes(20));
+
+        Assert.True(result.Value);
+        Assert.Equal(ReservationStatus.Committed, reservation.Status);
+    }
+
+    [Fact]
+    public void CommitConfirmed_Expired_CommitsAndReportsHoldAlreadyReturned()
+    {
+        var reservation = Create((Rice, 2));
+        reservation.Expire(Now.AddMinutes(15));
+
+        var result = reservation.CommitConfirmed(Now.AddMinutes(20));
+
+        Assert.False(result.Value);
+        Assert.Equal(ReservationStatus.Committed, reservation.Status);
+    }
+
+    [Fact]
+    public void CommitConfirmed_Released_ReturnsReleasedError()
+    {
+        var reservation = Create((Rice, 2));
+        reservation.Release(Now);
+
+        var result = reservation.CommitConfirmed(Now);
+
+        Assert.Equal(InventoryErrors.ReservationReleased, result.Error);
+    }
+
+    [Theory]
+    [InlineData("Active", "ReturnHold", "Released")]
+    [InlineData("Expired", "Nothing", "Released")]
+    [InlineData("Released", "Nothing", "Released")]
+    [InlineData("Committed", "ReverseSale", "Reversed")]
+    public void Cancel_ByStatus_ReturnsWhatToDoWithTheStock(string before, string expected, string after)
+    {
+        var reservation = InStatus(Enum.Parse<ReservationStatus>(before));
+
+        var outcome = reservation.Cancel(Now.AddMinutes(20));
+
+        Assert.Equal((Enum.Parse<CancellationOutcome>(expected), Enum.Parse<ReservationStatus>(after)), (outcome, reservation.Status));
+    }
+
+    [Fact]
+    public void Cancel_Twice_SecondTimeDoesNothing()
+    {
+        var reservation = InStatus(ReservationStatus.Committed);
+        reservation.Cancel(Now);
+
+        var second = reservation.Cancel(Now);
+
+        Assert.Equal((CancellationOutcome.Nothing, ReservationStatus.Reversed), (second, reservation.Status));
+    }
+
+    [Fact]
+    public void CommitConfirmed_AfterCancel_DoesNotSellAgain()
+    {
+        var reservation = InStatus(ReservationStatus.Expired);
+        reservation.Cancel(Now.AddMinutes(20));
+
+        var result = reservation.CommitConfirmed(Now.AddMinutes(21));
+
+        Assert.Equal(InventoryErrors.ReservationReleased, result.Error);
+    }
+
+    private static StockReservation InStatus(ReservationStatus status)
+    {
+        var reservation = Create((Rice, 2));
+        switch (status)
+        {
+            case ReservationStatus.Expired:
+                reservation.Expire(Now.AddMinutes(15));
+                break;
+            case ReservationStatus.Released:
+                reservation.Release(Now);
+                break;
+            case ReservationStatus.Committed:
+                reservation.Commit(Now);
+                break;
+        }
+
+        return reservation;
+    }
+
     private static StockReservation Create(params (Guid VariantId, decimal Quantity)[] lines) =>
         StockReservation.Create(StockReference.Order(Guid.CreateVersion7()), Guid.CreateVersion7(), lines, Lifetime, Now).Value;
 }

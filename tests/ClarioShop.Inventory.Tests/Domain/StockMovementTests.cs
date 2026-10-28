@@ -12,6 +12,7 @@ public sealed class StockMovementTests
     [InlineData("PurchaseReceipt", 5)]
     [InlineData("CustomerReturn", 1)]
     [InlineData("TransferIn", 2)]
+    [InlineData("OnlineSaleReversal", 3)]
     [InlineData("OnlineSale", -1)]
     [InlineData("PosSale", -0.250)]
     [InlineData("TransferOut", -2)]
@@ -29,6 +30,7 @@ public sealed class StockMovementTests
     [InlineData("OnlineSale", 1)]
     [InlineData("PosSale", 0)]
     [InlineData("TransferIn", -1)]
+    [InlineData("OnlineSaleReversal", -1)]
     public void Record_QuantityAgainstTypeSign_ReturnsValidationError(string type, decimal quantity)
     {
         var result = Record(Enum.Parse<MovementType>(type), quantity);

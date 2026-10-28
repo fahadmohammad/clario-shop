@@ -8,5 +8,6 @@ internal sealed class OrderingPermissionProvider : IPermissionProvider
     public IReadOnlyCollection<PermissionDefinition> GetPermissions() =>
     [
         new(OrderingPermissions.OrdersView, "orders", "View orders, their lines and status history"),
+        new(OrderingPermissions.OrdersManage, "orders", "Confirm, pack, ship, deliver, cancel and return orders"),
     ];
 }

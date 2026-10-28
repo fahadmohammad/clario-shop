@@ -61,3 +61,13 @@ internal sealed class RecordingOrderPlacedHandler(EventRecorder recorder, ITenan
         return Task.CompletedTask;
     }
 }
+
+internal sealed class RecordingHandler<TEvent>(EventRecorder recorder, ITenantContext tenant) : IIntegrationEventHandler<TEvent>
+    where TEvent : IIntegrationEvent
+{
+    public Task HandleAsync(TEvent integrationEvent, CancellationToken cancellationToken)
+    {
+        recorder.Record(tenant.TenantId, integrationEvent);
+        return Task.CompletedTask;
+    }
+}

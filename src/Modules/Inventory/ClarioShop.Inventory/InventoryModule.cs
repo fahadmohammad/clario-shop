@@ -5,8 +5,10 @@ using ClarioShop.Infrastructure.Persistence;
 using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Inventory.Contracts;
 using ClarioShop.Inventory.Features.Items;
+using ClarioShop.Inventory.Features.Orders;
 using ClarioShop.Inventory.Persistence;
 using ClarioShop.Inventory.Services;
+using ClarioShop.Ordering.Contracts.Events;
 using ClarioShop.SharedKernel.Security;
 using Microsoft.Extensions.Configuration;
 
@@ -25,11 +27,14 @@ public static class InventoryModule
         services.AddScoped<LocationResolver>();
         services.AddScoped<ItemRegistry>();
         services.AddScoped<ReservationExpiry>();
-        services.AddScoped<IInventoryReservations, InventoryReservations>();
+        services.AddScoped<InventoryReservations>();
+        services.AddScoped<IInventoryReservations>(provider => provider.GetRequiredService<InventoryReservations>());
         services.AddScoped<ITenantInitializer, DefaultLocationInitializer>();
         services.AddHostedService<ReservationExpiryService>();
 
         services.AddIntegrationEventHandler<ProductCreated, ProductCreatedHandler, InventoryDbContext>("inventory");
+        services.AddIntegrationEventHandler<OrderConfirmed, OrderConfirmedHandler, InventoryDbContext>("inventory");
+        services.AddIntegrationEventHandler<OrderCancelled, OrderCancelledHandler, InventoryDbContext>("inventory");
         return services;
     }
 }

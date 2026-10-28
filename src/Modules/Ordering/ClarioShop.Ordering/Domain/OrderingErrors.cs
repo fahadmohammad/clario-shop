@@ -34,6 +34,17 @@ internal static class OrderingErrors
     public static readonly Error WholeUnitsOnly =
         Error.Validation("quantity", "This item is sold in whole units.");
 
+    public static readonly Error OrderChanged =
+        Error.Conflict("ordering.order_changed", "The order was changed by someone else; reload it and try again.");
+
+    public static Error InvalidTransition(OrderStatus from, OrderStatus to) =>
+        Error.Conflict("ordering.invalid_transition", $"A {from} order cannot be moved to {to}.");
+
+    public static Error StockGone(string detail) =>
+        Error.Conflict(
+            "ordering.stock_unavailable",
+            $"The order's stock hold expired and the stock is no longer available, so it cannot be confirmed ({detail}). Cancel the order or restock first.");
+
     public static Error ItemsUnavailable(IEnumerable<string> skus) =>
         Error.Conflict(
             "ordering.items_unavailable",

@@ -5,6 +5,9 @@ internal enum MovementType
 {
     PurchaseReceipt,
     OnlineSale,
+
+    /// <summary>Puts back an online sale whose order was cancelled before it shipped (the goods never left).</summary>
+    OnlineSaleReversal,
     PosSale,
     CustomerReturn,
     Adjustment,

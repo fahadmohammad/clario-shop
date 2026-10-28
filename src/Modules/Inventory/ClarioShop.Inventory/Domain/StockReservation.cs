@@ -96,6 +96,53 @@ internal sealed class StockReservation : Entity
         }
     }
 
+    /// <summary>
+    /// Commits the reservation of an order that was confirmed while it held the stock, even if the hold ran out before
+    /// this ran (a delayed event must not undo a confirmed sale). Returns true when the stock is still held and the hold
+    /// must be dropped with the sale, false when the hold was already given back (expired) or this was committed before.
+    /// Fails when the reservation was released: the order was cancelled.
+    /// </summary>
+    public Result<bool> CommitConfirmed(DateTimeOffset now)
+    {
+        switch (Status)
+        {
+            case ReservationStatus.Committed or ReservationStatus.Reversed:
+                return false;
+            case ReservationStatus.Released:
+                return InventoryErrors.ReservationReleased;
+            default:
+                var held = Status == ReservationStatus.Active;
+                Close(ReservationStatus.Committed, now);
+                return held;
+        }
+    }
+
+    /// <summary>
+    /// Closes the reservation of a cancelled order. Returns what has to happen to the stock; doing it twice does nothing.
+    /// </summary>
+    public CancellationOutcome Cancel(DateTimeOffset now)
+    {
+        var outcome = Status switch
+        {
+            ReservationStatus.Active => CancellationOutcome.ReturnHold,
+            ReservationStatus.Committed => CancellationOutcome.ReverseSale,
+            _ => CancellationOutcome.Nothing,
+        };
+
+        switch (Status)
+        {
+            case ReservationStatus.Active or ReservationStatus.Expired:
+                // An expired hold is marked released too, so a confirmation arriving late cannot sell it.
+                Close(ReservationStatus.Released, now);
+                break;
+            case ReservationStatus.Committed:
+                Close(ReservationStatus.Reversed, now);
+                break;
+        }
+
+        return outcome;
+    }
+
     /// <summary>Expires a reservation whose time is up. Returns false if it was not due.</summary>
     public bool Expire(DateTimeOffset now)
     {

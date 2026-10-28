@@ -121,6 +121,10 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
             services.AddIntegrationEventHandler<ProductCreated, RecordingProductCreatedHandler, CatalogDbContext>("tests");
             services.AddIntegrationEventHandler<CustomerCreated, RecordingCustomerCreatedHandler, CustomersDbContext>("tests");
             services.AddIntegrationEventHandler<OrderPlaced, RecordingOrderPlacedHandler, OrderingDbContext>("tests");
+            services.AddIntegrationEventHandler<OrderConfirmed, RecordingHandler<OrderConfirmed>, OrderingDbContext>("tests");
+            services.AddIntegrationEventHandler<OrderCancelled, RecordingHandler<OrderCancelled>, OrderingDbContext>("tests");
+            services.AddIntegrationEventHandler<OrderShipped, RecordingHandler<OrderShipped>, OrderingDbContext>("tests");
+            services.AddIntegrationEventHandler<OrderDelivered, RecordingHandler<OrderDelivered>, OrderingDbContext>("tests");
         });
     }
 

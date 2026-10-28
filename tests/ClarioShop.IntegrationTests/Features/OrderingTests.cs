@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ClarioShop.IntegrationTests.Features;
 
 [Collection(ApiCollection.Name)]
-public sealed class OrderingTests(ClarioApiFactory api)
+public sealed partial class OrderingTests(ClarioApiFactory api)
 {
     private const string Phone = "01712-345678";
 
