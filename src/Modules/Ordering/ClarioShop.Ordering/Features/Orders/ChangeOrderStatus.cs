@@ -47,14 +47,17 @@ public static class ChangeOrderStatus
         private static IIntegrationEvent? EventFor(Order order, OrderStatus previous, string? note, DateTimeOffset now)
         {
             var number = OrderNumber.Format(order.Number);
+            var reason = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
             return order.Status switch
             {
                 OrderStatus.Cancelled => new OrderCancelled(
-                    Guid.CreateVersion7(), now, order.Id, number, order.CustomerId, order.ReservationId, previous.ToString(), string.IsNullOrWhiteSpace(note) ? null : note.Trim()),
+                    Guid.CreateVersion7(), now, order.Id, number, order.CustomerId, order.ReservationId, previous.ToString(), reason),
+                OrderStatus.Packed => new OrderPacked(Guid.CreateVersion7(), now, order.Id, number, order.CustomerId),
                 OrderStatus.Shipped => new OrderShipped(Guid.CreateVersion7(), now, order.Id, number, order.CustomerId),
                 OrderStatus.Delivered => new OrderDelivered(Guid.CreateVersion7(), now, order.Id, number, order.CustomerId),
 
-                // Packing is internal; returns are handled with return requests (restock decisions) in a later step.
+                // Restocking a return is decided with return requests in a later step; until then nothing consumes this but reports.
+                OrderStatus.Returned => new OrderReturned(Guid.CreateVersion7(), now, order.Id, number, order.CustomerId, previous.ToString(), reason),
                 _ => null,
             };
         }

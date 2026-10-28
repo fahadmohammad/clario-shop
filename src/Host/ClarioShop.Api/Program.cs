@@ -13,6 +13,7 @@ using ClarioShop.Notifications;
 using ClarioShop.Ordering;
 using ClarioShop.Payments;
 using ClarioShop.Platform;
+using ClarioShop.Reporting;
 using ClarioShop.Settings;
 using Scalar.AspNetCore;
 
@@ -53,7 +54,8 @@ builder.Services
     .AddOrderingModule()
     .AddPaymentsModule(builder.Configuration)
     .AddSettingsModule()
-    .AddNotificationsModule(builder.Configuration);
+    .AddNotificationsModule(builder.Configuration)
+    .AddReportingModule(builder.Configuration);
 
 var app = builder.Build();
 

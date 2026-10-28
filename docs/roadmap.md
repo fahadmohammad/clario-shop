@@ -103,11 +103,15 @@ choice is configuration later, never a blocker now.
   - `NotificationTemplate` in Settings (per event, channel and language; the architecture doc puts it there): staff list, edit and reset to the built-in default (`settings.edit`), placeholders validated on save.
   - Notifications renders a tenant's own template when it has one, the built-in default otherwise, read through `ISettingsQueries` (cached, invalidated on change).
 
-### 11. reporting
-- [ ] **Basic reports**
-  - Reporting module builds its own projections from events (never reads other schemas): daily sales totals, orders by status, top variants.
+### 11a. sales-reports
+- [x] **Sales reports** — #20
+  - Reporting module builds its own projections from Ordering's events (never reads other schemas): daily sales totals, orders by status, top variants.
+  - Permission `reports.sales.view`.
+
+### 11b. inventory-reports
+- [ ] **Inventory reports**
   - Inventory reports via an `IInventoryQueries` contract: stock value at cost, low and negative stock.
-  - Permission `reports.sales.view`, `reports.inventory.view`.
+  - Permission `reports.inventory.view`.
 
 ### 12. inventory-followups
 - [ ] **Inventory completeness**

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClarioShop.Reporting.Contracts\ClarioShop.Reporting.Contracts.csproj" />
+    <ProjectReference Include="..\..\Ordering\ClarioShop.Ordering.Contracts\ClarioShop.Ordering.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\ClarioShop.Infrastructure\ClarioShop.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="ClarioShop.Reporting.Tests" />
+    <InternalsVisibleTo Include="ClarioShop.IntegrationTests" />
+  </ItemGroup>
+</Project>

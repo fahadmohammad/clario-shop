@@ -290,7 +290,7 @@ public static class Checkout
                 order.Vat,
                 order.Total,
                 order.ReservationId,
-                [.. order.Lines.OrderBy(line => line.Position).Select(line => new OrderPlacedLine(line.VariantId, line.Sku, line.Quantity, line.UnitPrice))]));
+                [.. order.Lines.OrderBy(line => line.Position).Select(line => new OrderPlacedLine(line.VariantId, line.Sku, line.Quantity, line.UnitPrice, line.LineTotal, line.ProductName, line.VariantName))]));
 
             try
             {
