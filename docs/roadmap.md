@@ -89,7 +89,7 @@ choice is configuration later, never a blocker now.
   - Tests use a fake `IPaymentGateway` (no network).
 
 ### 9c. payment-reconciliation
-- [ ] **Failed payments and reconciliation of missed gateway webhooks**
+- [x] **Failed payments and reconciliation of missed gateway webhooks** — #17
   - Look a transaction up at the gateway by transaction id; a failed, cancelled or expired payment publishes `PaymentFailed`, Ordering cancels the order and Inventory releases the stock (never on the shopper's redirect or an IPN alone).
   - Background job every 15 minutes: for pending gateway payments, query the gateway by transaction id and settle them exactly as the IPN would.
 

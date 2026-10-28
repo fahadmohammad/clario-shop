@@ -67,6 +67,9 @@ internal static class OrderingErrors
     public static Error PaymentMethodUnavailable(string method) =>
         Error.Conflict("ordering.payment_method_unavailable", $"The store does not take {method} payments at the moment; choose another way to pay.");
 
+    public static readonly Error PartlyPaid =
+        Error.Conflict("ordering.partly_paid", "Some of the order is paid, so it is not cancelled automatically; staff refund or settle it.");
+
     public static Error InvalidTransition(OrderStatus from, OrderStatus to) =>
         Error.Conflict("ordering.invalid_transition", $"A {from} order cannot be moved to {to}.");
 

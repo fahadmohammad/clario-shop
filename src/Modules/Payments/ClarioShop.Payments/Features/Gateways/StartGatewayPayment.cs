@@ -52,13 +52,19 @@ public static class StartGatewayPayment
             {
                 await db.LockOrderAsync(order.OrderId, cancellationToken);
                 var payments = await db.Payments.Include(p => p.Attempts).Where(p => p.OrderId == order.OrderId).ToListAsync(cancellationToken);
+                var method = Enum.Parse<PaymentMethod>(gateway.Name);
+                if (payments.Any(p => p.Method == method && p.Status == PaymentStatus.Failed))
+                {
+                    // Ordering is about to cancel the order; a new payment would only be one more to refund.
+                    return PaymentsErrors.PaymentFailed;
+                }
+
                 var balance = OrderBalance.Of(order.Total, payments);
                 if (balance.Outstanding == 0m)
                 {
                     return PaymentsErrors.ExceedsOutstanding(balance.Outstanding, 0m);
                 }
 
-                var method = Enum.Parse<PaymentMethod>(gateway.Name);
                 payment = payments.FirstOrDefault(p => p.Method == method && p.Status == PaymentStatus.Pending)
                     ?? db.Payments.Add(Payment.StartOnline(order.OrderId, order.Number, method, balance.Outstanding, now)).Entity;
                 attempt = payment.StartAttempt(now);

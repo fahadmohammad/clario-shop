@@ -468,5 +468,5 @@ public sealed partial class OrderingTests(ClarioApiFactory api)
 
     private sealed record OrderLineResponse(Guid VariantId, string Sku, decimal UnitPrice, decimal Quantity, decimal LineTotal);
 
-    private sealed record StatusChangeResponse(string? FromStatus, string ToStatus);
+    private sealed record StatusChangeResponse(string? FromStatus, string ToStatus, string? Note = null);
 }

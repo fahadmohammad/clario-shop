@@ -62,6 +62,47 @@ public sealed class PrepaidOrderTests
     public void PendingPayment_StaffCannotConfirm() =>
         Assert.False(Place(PaymentMethod.SslCommerz).CanMoveTo(OrderStatus.Confirmed));
 
+    [Fact]
+    public void CancelUnpaid_PendingPayment_CancelsWithTheReason()
+    {
+        var order = Place(PaymentMethod.SslCommerz);
+
+        var cancelled = order.CancelUnpaid("No payment confirmed.", Now.AddHours(1));
+
+        Assert.True(cancelled.IsSuccess);
+        Assert.Equal(OrderStatus.Cancelled, order.Status);
+        var change = order.History.Last();
+        Assert.Equal(((OrderStatus?)OrderStatus.PendingPayment, (Guid?)null, "Payment failed: No payment confirmed."), (change.FromStatus, change.ChangedByUserId, change.Note));
+    }
+
+    [Fact]
+    public void CancelUnpaid_PartlyPaid_ReturnsPartlyPaid()
+    {
+        var order = Place(PaymentMethod.SslCommerz);
+        order.RecordPayment(Guid.CreateVersion7(), "SslCommerz", 100m, Now, Now);
+
+        var cancelled = order.CancelUnpaid("No payment confirmed.", Now);
+
+        Assert.Equal("ordering.partly_paid", cancelled.Error.Code);
+        Assert.Equal(OrderStatus.PendingPayment, order.Status);
+    }
+
+    [Fact]
+    public void CancelUnpaid_AlreadyCancelled_ReturnsInvalidTransition()
+    {
+        var order = Place(PaymentMethod.SslCommerz);
+        order.CancelUnpaid("First failure.", Now);
+
+        var cancelled = order.CancelUnpaid("No payment confirmed.", Now);
+
+        Assert.Equal("ordering.invalid_transition", cancelled.Error.Code);
+        Assert.Equal(2, order.History.Count);
+    }
+
+    [Fact]
+    public void CancelUnpaid_CashOnDeliveryOrder_ReturnsInvalidTransition() =>
+        Assert.Equal("ordering.invalid_transition", Place(PaymentMethod.CashOnDelivery).CancelUnpaid("No payment confirmed.", Now).Error.Code);
+
     private static Order Place(PaymentMethod method) =>
         Order.Place(
             Guid.CreateVersion7(),

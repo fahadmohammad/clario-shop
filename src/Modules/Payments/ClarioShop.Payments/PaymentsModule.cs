@@ -22,6 +22,9 @@ public static class PaymentsModule
         services.AddSingleton<IPermissionProvider, PaymentsPermissionProvider>();
         services.AddScoped<IPaymentMethods, PaymentMethods>();
         services.AddScoped<GatewayCallbackProcessor>();
+        services.Configure<GatewayReconciliationOptions>(configuration.GetSection(GatewayReconciliationOptions.SectionName));
+        services.AddScoped<GatewayReconciliation>();
+        services.AddHostedService<GatewayReconciliationService>();
 
         services.Configure<SslCommerzOptions>(configuration.GetSection(SslCommerzOptions.SectionName));
         services.AddHttpClient<SslCommerzGateway>();

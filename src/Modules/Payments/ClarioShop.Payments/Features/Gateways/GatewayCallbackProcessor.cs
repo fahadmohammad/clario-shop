@@ -36,12 +36,12 @@ internal sealed partial class GatewayCallbackProcessor(
             return await CompleteAsync(log, GatewayCallbackOutcome.UnknownPayment, attempt, detail: null, cancellationToken);
         }
 
-        var claimsPaid = source is GatewayCallbackSource.Ipn or GatewayCallbackSource.SuccessRedirect
+        var claimsPaid = source is GatewayCallbackSource.Ipn or GatewayCallbackSource.SuccessRedirect or GatewayCallbackSource.Reconciliation
             && PaidStatuses.Contains(log.ReportedStatus, StringComparer.OrdinalIgnoreCase)
             && log.ValidationId is not null;
         if (!claimsPaid)
         {
-            // Failures are never taken from a callback alone; the reconciliation step asks the gateway about them.
+            // Failures are never taken from a callback alone; GatewayReconciliation asks the gateway about them.
             return await CompleteAsync(log, GatewayCallbackOutcome.NotPaid, attempt, detail: null, cancellationToken);
         }
 

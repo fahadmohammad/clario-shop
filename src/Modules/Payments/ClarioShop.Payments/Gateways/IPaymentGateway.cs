@@ -15,4 +15,11 @@ internal interface IPaymentGateway
     /// <summary>Asks the gateway what a transaction it reported (by IPN or redirect) really is.</summary>
     /// <param name="validationId">The gateway's id for the reported transaction (SSLCommerz <c>val_id</c>).</param>
     Task<Result<GatewayTransaction>> ValidateAsync(string validationId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Asks the gateway about a transaction id we opened a session for, whether or not it ever called back: every try
+    /// the shopper made for it, none when they never got to pay.
+    /// </summary>
+    /// <param name="transactionId">Our id sent when the session was opened (SSLCommerz <c>tran_id</c>).</param>
+    Task<Result<IReadOnlyList<GatewayAttempt>>> FindAttemptsAsync(string transactionId, CancellationToken cancellationToken);
 }

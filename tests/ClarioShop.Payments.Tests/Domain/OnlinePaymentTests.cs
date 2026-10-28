@@ -126,6 +126,44 @@ public sealed class OnlinePaymentTests
         Assert.Throws<InvalidOperationException>(() => payment.StartAttempt(Now));
     }
 
+    [Fact]
+    public void Fail_Pending_FailsPaymentAndOpenAttemptsButKeepsEarlierReasons()
+    {
+        var payment = Start();
+        var cancelled = payment.StartAttempt(Now);
+        var open = payment.StartAttempt(Now.AddMinutes(2));
+        payment.FailAttempt(cancelled.Id, "SslCommerz reports CANCELLED.", Now.AddMinutes(40));
+
+        payment.Fail("No payment confirmed.", Now.AddMinutes(40));
+
+        Assert.Equal((PaymentStatus.Failed, (DateTimeOffset?)Now.AddMinutes(40)), (payment.Status, payment.CompletedAt));
+        Assert.Equal((AttemptOutcome.Failed, "SslCommerz reports CANCELLED."), (cancelled.Outcome, cancelled.Note));
+        Assert.Equal((AttemptOutcome.Failed, "No payment confirmed."), (open.Outcome, open.Note));
+    }
+
+    [Fact]
+    public void Fail_AlreadySucceeded_Throws()
+    {
+        var payment = Start();
+        var attempt = payment.StartAttempt(Now);
+        payment.Settle(attempt.Id, Receipt(900m), Now);
+
+        Assert.Throws<InvalidOperationException>(() => payment.Fail("No payment confirmed.", Now));
+    }
+
+    [Fact]
+    public void Settle_AfterPaymentFailed_SucceedsAfterAll()
+    {
+        var payment = Start();
+        var attempt = payment.StartAttempt(Now);
+        payment.Fail("No payment confirmed.", Now.AddMinutes(40));
+
+        var settled = payment.Settle(attempt.Id, Receipt(900m), Now.AddMinutes(41));
+
+        Assert.Equal(SettleOutcome.Settled, settled.Value);
+        Assert.Equal((PaymentStatus.Succeeded, AttemptOutcome.Succeeded), (payment.Status, attempt.Outcome));
+    }
+
     private static Payment Start() => Payment.StartOnline(Guid.CreateVersion7(), "CS-000001", PaymentMethod.SslCommerz, 900m, Now);
 
     private static GatewayReceipt Receipt(decimal amount) => new("VAL-1", amount, "BDT", "BANK-1", "BKASH-BKash", IsRisky: false);

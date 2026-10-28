@@ -22,6 +22,7 @@ public static class OrderingModule
         services.AddScoped<IOrderQueries, OrderQueries>();
 
         services.AddIntegrationEventHandler<PaymentSucceeded, PaymentSucceededHandler, OrderingDbContext>("ordering");
+        services.AddIntegrationEventHandler<PaymentFailed, PaymentFailedHandler, OrderingDbContext>("ordering");
         return services;
     }
 }
