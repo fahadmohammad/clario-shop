@@ -7,6 +7,7 @@ using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Security;
 using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Inventory;
+using ClarioShop.Ordering;
 using ClarioShop.Platform;
 using Scalar.AspNetCore;
 
@@ -42,7 +43,8 @@ builder.Services
     .AddIdentityModule()
     .AddCatalogModule()
     .AddInventoryModule(builder.Configuration)
-    .AddCustomersModule();
+    .AddCustomersModule()
+    .AddOrderingModule();
 
 var app = builder.Build();
 

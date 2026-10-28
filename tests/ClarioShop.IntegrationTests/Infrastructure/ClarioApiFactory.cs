@@ -6,6 +6,8 @@ using ClarioShop.Customers.Contracts.Events;
 using ClarioShop.Customers.Persistence;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Tenancy;
+using ClarioShop.Ordering.Contracts.Events;
+using ClarioShop.Ordering.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -118,6 +120,7 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
             services.AddSingleton(Events);
             services.AddIntegrationEventHandler<ProductCreated, RecordingProductCreatedHandler, CatalogDbContext>("tests");
             services.AddIntegrationEventHandler<CustomerCreated, RecordingCustomerCreatedHandler, CustomersDbContext>("tests");
+            services.AddIntegrationEventHandler<OrderPlaced, RecordingOrderPlacedHandler, OrderingDbContext>("tests");
         });
     }
 
