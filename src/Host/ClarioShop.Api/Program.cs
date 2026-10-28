@@ -9,6 +9,7 @@ using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Inventory;
 using ClarioShop.Ordering;
 using ClarioShop.Platform;
+using ClarioShop.Settings;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,7 +45,8 @@ builder.Services
     .AddCatalogModule()
     .AddInventoryModule(builder.Configuration)
     .AddCustomersModule()
-    .AddOrderingModule();
+    .AddOrderingModule()
+    .AddSettingsModule();
 
 var app = builder.Build();
 
