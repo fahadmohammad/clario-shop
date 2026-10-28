@@ -77,6 +77,7 @@ public static class CreateProduct
 ## Auth and RBAC
 
 - **OpenIddict** token server in the Identity module: `POST /api/identity/token` (OAuth 2.0, form-encoded) with the password and refresh_token grants; access tokens 15 min, rotating refresh tokens. Token entries live in the tenant's `identity` schema. Phone OTP and Google SSO come next. Outside Development and Testing, `Auth:SigningCertificate` and `Auth:EncryptionCertificate` (base64 PFX, from secrets) are required.
+- Secrets a tenant gives us (payment gateway merchant passwords) are encrypted with the **Data Protection API**, purpose bound to the tenant; the key ring lives in the Platform database, encrypted with `Platform:DataProtectionCertificate` (base64 PFX, required outside Development and Testing).
 - Authorization is **permission-based**: permission strings like `catalog.products.edit`, bundled into roles. `PermissionPolicyProvider` builds a policy per permission; `PermissionAuthorizationHandler` checks the user's permissions.
 - Tokens carry a `tenant` claim that must match the resolved tenant.
 

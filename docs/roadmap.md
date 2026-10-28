@@ -77,7 +77,7 @@ choice is configuration later, never a blocker now.
   - Permission `payments.manage`.
 
 ### 9a. gateway-credentials
-- [~] **SSLCommerz merchant credentials and gateway client**
+- [x] **SSLCommerz merchant credentials and gateway client** — #15
   - Per-tenant merchant credentials in Settings (store id, store password, sandbox or live), the password encrypted with the Data Protection API (purpose bound to the tenant); staff endpoints never return it. Data Protection keys persisted in the Platform database.
   - Contracts `IPaymentGatewayCredentials` for Payments (not cached, so secrets never reach Redis).
   - Gateway behind `IPaymentGateway` (create a session, validate a transaction) with the SSLCommerz implementation; tests use a stub HTTP handler (no network).

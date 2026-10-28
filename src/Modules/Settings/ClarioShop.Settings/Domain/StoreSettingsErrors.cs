@@ -13,6 +13,9 @@ internal static class StoreSettingsErrors
     public static readonly Error DeliveryZoneNotFound =
         Error.NotFound("settings.delivery_zone_not_found", "The delivery zone does not exist.");
 
+    public static readonly Error GatewaySecretRequired =
+        Error.Validation("storePassword", "Enter the store password; it is required the first time the account is saved.");
+
     public static Error DeliveryZoneNameTaken(string name) =>
         Error.Conflict("settings.delivery_zone_name_taken", $"A delivery zone named '{name}' already exists.");
 }

@@ -12,4 +12,6 @@ internal sealed class SettingsDbContext(DbContextOptions<SettingsDbContext> opti
     public DbSet<StoreSettings> StoreSettings => Set<StoreSettings>();
 
     public DbSet<DeliveryZone> DeliveryZones => Set<DeliveryZone>();
+
+    public DbSet<PaymentGatewayAccount> PaymentGatewayAccounts => Set<PaymentGatewayAccount>();
 }

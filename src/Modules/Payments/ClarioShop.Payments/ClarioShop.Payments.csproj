@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ClarioShop.Payments.Contracts\ClarioShop.Payments.Contracts.csproj" />
     <ProjectReference Include="..\..\Ordering\ClarioShop.Ordering.Contracts\ClarioShop.Ordering.Contracts.csproj" />
+    <ProjectReference Include="..\..\Settings\ClarioShop.Settings.Contracts\ClarioShop.Settings.Contracts.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\ClarioShop.Infrastructure\ClarioShop.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>

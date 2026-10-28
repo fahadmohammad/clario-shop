@@ -12,6 +12,14 @@ public sealed class PlatformOptions
 
     public bool MigrateOnStartup { get; set; }
 
+    /// <summary>
+    /// Base64 PKCS#12 certificate with its private key, from secrets, that encrypts the Data Protection keys stored in
+    /// the platform database. Required outside Development and Testing.
+    /// </summary>
+    public string? DataProtectionCertificate { get; set; }
+
+    public string? DataProtectionCertificatePassword { get; set; }
+
     public DemoTenantOptions DemoTenant { get; set; } = new();
 }
 

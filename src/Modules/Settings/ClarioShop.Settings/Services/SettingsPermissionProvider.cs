@@ -7,6 +7,6 @@ internal sealed class SettingsPermissionProvider : IPermissionProvider
 {
     public IReadOnlyCollection<PermissionDefinition> GetPermissions() =>
     [
-        new(SettingsPermissions.Edit, "settings", "View and change the store profile, theme, VAT, invoice prefix, languages and delivery zones"),
+        new(SettingsPermissions.Edit, "settings", "View and change the store profile, theme, VAT, invoice prefix, languages, delivery zones and payment gateway accounts"),
     ];
 }
