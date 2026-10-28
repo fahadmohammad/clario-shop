@@ -1,0 +1,20 @@
+using ClarioShop.Infrastructure.Handlers;
+using ClarioShop.Infrastructure.Persistence;
+using ClarioShop.Ordering.Persistence;
+using ClarioShop.Ordering.Services;
+using ClarioShop.SharedKernel.Security;
+
+namespace ClarioShop.Ordering;
+
+public static class OrderingModule
+{
+    public static IServiceCollection AddOrderingModule(this IServiceCollection services)
+    {
+        services.AddTenantDbContext<OrderingDbContext>(OrderingDbContext.SchemaName);
+        services.AddModuleHandlers(typeof(OrderingModule).Assembly);
+        services.AddEndpointGroups(typeof(OrderingModule).Assembly);
+
+        services.AddSingleton<IPermissionProvider, OrderingPermissionProvider>();
+        return services;
+    }
+}

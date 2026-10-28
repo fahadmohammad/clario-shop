@@ -17,6 +17,7 @@ internal sealed class CatalogQueries(CatalogDbContext db) : ICatalogQueries
                    variant.Sku,
                    variant.Name,
                    variant.Price,
-                   variant.IsActive && product.Status == ProductStatus.Published))
+                   variant.IsActive && product.Status == ProductStatus.Published,
+                   variant.SoldByWeight))
             .ToListAsync(cancellationToken);
 }
