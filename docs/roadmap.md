@@ -20,21 +20,21 @@ choice is configuration later, never a blocker now.
 ## Steps
 
 ### 1. customers
-- [ ] **Customers module**
+- [x] **Customers module** — #5
   - `Customer` (matched by normalized Bangladeshi phone number, unique), `Address` (multiple per customer, one default).
   - Contracts: `ICustomerDirectory.FindOrCreateByPhoneAsync(phone, name)` and `GetAsync(id)` for checkout; `CustomerCreated` event.
   - Staff endpoints: search/list customers, view one with addresses. Permissions `customers.view`, `customers.edit`.
   - Done when: phone normalization unit-tested (`01712-345678`, `+8801712345678`, `8801712345678` are one customer), find-or-create is idempotent under concurrency, module is in the architecture tests.
 
 ### 2. ordering-checkout
-- [ ] **Ordering module: cart and cash-on-delivery checkout**
+- [x] **Ordering module: cart and cash-on-delivery checkout** — #6
   - `Cart`/`CartItem` (anonymous cart id for guests), add/update/remove items; prices always read from `ICatalogQueries` (only sellable variants).
   - `POST /api/ordering/checkout` (COD): finds or creates the customer via `ICustomerDirectory`, creates `Order` in `Placed` with `OrderLine`s that copy name, SKU and price, reserves stock via `IInventoryReservations` (insufficient stock → 409, nothing persisted), writes `OrderStatusHistory`, publishes `OrderPlaced`.
   - Order number per tenant (readable, sequential, e.g. `CS-000123`).
   - Done when: integration tests cover happy path, out-of-stock, unpublished variant, price snapshot unaffected by later price changes, idempotent checkout (same cart twice → one order).
 
 ### 3. ordering-lifecycle
-- [ ] **Order lifecycle and stock hand-off**
+- [x] **Order lifecycle and stock hand-off** — #7
   - Staff transitions `Placed → Confirmed → Packed → Shipped → Delivered`, plus `Cancelled` (before Shipped) and `Returned`; every change in `OrderStatusHistory`; invalid transitions are 409.
   - Events `OrderConfirmed`, `OrderCancelled`, `OrderShipped`, `OrderDelivered`. Inventory consumes `OrderConfirmed` (commit reservation → `OnlineSale` movements) and `OrderCancelled` (release).
   - Confirming after the 15-minute reservation expired: Ordering re-reserves through `IInventoryReservations` before confirming; if stock is gone the confirm fails with 409 and a clear message.

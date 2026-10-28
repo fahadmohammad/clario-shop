@@ -6,4 +6,7 @@ internal enum ReservationStatus
     Committed,
     Released,
     Expired,
+
+    /// <summary>Committed, then the order was cancelled before shipping and the sale was reversed.</summary>
+    Reversed,
 }

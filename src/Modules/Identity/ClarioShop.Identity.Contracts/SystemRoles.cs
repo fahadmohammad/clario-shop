@@ -8,4 +8,7 @@ public static class SystemRoles
     public const string CatalogManager = "Catalog Manager";
 
     public const string InventoryClerk = "Inventory Clerk";
+
+    /// <summary>Works the online order queue: confirms, packs, ships and cancels orders, and looks up customers.</summary>
+    public const string OrderHandler = "Order Handler";
 }

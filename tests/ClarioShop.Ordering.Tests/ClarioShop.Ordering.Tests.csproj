@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Ordering\ClarioShop.Ordering\ClarioShop.Ordering.csproj" />
+  </ItemGroup>
+</Project>

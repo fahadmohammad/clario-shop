@@ -91,7 +91,7 @@ internal sealed class StockMovement : Entity
 
     public static bool HasValidSign(MovementType type, decimal quantity) => type switch
     {
-        MovementType.PurchaseReceipt or MovementType.CustomerReturn or MovementType.TransferIn => quantity > 0,
+        MovementType.PurchaseReceipt or MovementType.CustomerReturn or MovementType.OnlineSaleReversal or MovementType.TransferIn => quantity > 0,
         MovementType.OnlineSale or MovementType.PosSale or MovementType.TransferOut => quantity < 0,
         MovementType.Adjustment => quantity != 0,
         _ => false,
