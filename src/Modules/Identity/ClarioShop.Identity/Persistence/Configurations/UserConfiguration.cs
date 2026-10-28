@@ -12,6 +12,8 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.Email).HasMaxLength(256);
         builder.Property(user => user.NormalizedEmail).HasMaxLength(256);
         builder.HasIndex(user => user.NormalizedEmail).IsUnique();
+        builder.Property(user => user.Phone).HasMaxLength(16);
+        builder.HasIndex(user => user.Phone).IsUnique();
         builder.Property(user => user.FullName).HasMaxLength(200);
         builder.Property(user => user.PasswordHash).HasMaxLength(500);
 

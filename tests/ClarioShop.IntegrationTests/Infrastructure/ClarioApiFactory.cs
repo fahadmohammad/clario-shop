@@ -6,6 +6,7 @@ using ClarioShop.Catalog.Persistence;
 using ClarioShop.Customers.Contracts.Events;
 using ClarioShop.Customers.Persistence;
 using ClarioShop.Infrastructure.Messaging;
+using ClarioShop.Infrastructure.Sms;
 using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Ordering.Contracts.Events;
 using ClarioShop.Ordering.Persistence;
@@ -26,6 +27,8 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
     private readonly string runId = Guid.NewGuid().ToString("N")[..8];
 
     public EventRecorder Events { get; } = new();
+
+    public RecordingSmsSender Sms { get; } = new();
 
     public async ValueTask InitializeAsync()
     {
@@ -91,6 +94,13 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         ["password"] = password,
     });
 
+    public static FormUrlEncodedContent OtpGrant(string phone, string code) => new(new Dictionary<string, string>
+    {
+        ["grant_type"] = "urn:clarioshop:params:oauth:grant-type:otp",
+        ["phone"] = phone,
+        ["code"] = code,
+    });
+
     public static FormUrlEncodedContent RefreshTokenGrant(string refreshToken) => new(new Dictionary<string, string>
     {
         ["grant_type"] = "refresh_token",
@@ -132,10 +142,13 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         // A rotated refresh token is rejected at once, so the tests can see rotation without waiting.
         builder.UseSetting("Auth:RefreshTokenReuseLeeway", "00:00:00");
         builder.UseSetting("Messaging:OutboxPollInterval", "00:00:00.200");
+        // Low enough that a test reaches it quickly; every test uses its own shop, so the counts never collide.
+        builder.UseSetting("Auth:Otp:RequestsPerAddress", "5");
 
         builder.ConfigureTestServices(services =>
         {
             services.AddSingleton(Events);
+            services.AddSingleton<ISmsSender>(Sms);
             services.AddIntegrationEventHandler<ProductCreated, RecordingProductCreatedHandler, CatalogDbContext>("tests");
             services.AddIntegrationEventHandler<CustomerCreated, RecordingCustomerCreatedHandler, CustomersDbContext>("tests");
             services.AddIntegrationEventHandler<OrderPlaced, RecordingOrderPlacedHandler, OrderingDbContext>("tests");

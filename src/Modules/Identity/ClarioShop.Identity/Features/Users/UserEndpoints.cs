@@ -12,7 +12,7 @@ internal sealed class UserEndpoints : IEndpointGroup
         group.MapGet("/me", static async (ClaimsPrincipal principal, GetCurrentUser.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(new GetCurrentUser.Query(principal), cancellationToken)).ToHttpResult())
             .WithName("GetCurrentUser")
-            .WithSummary("The signed-in staff member and their permissions.")
+            .WithSummary("The signed-in staff member or shopper and their permissions.")
             .Produces<GetCurrentUser.Response>()
             .RequireAuthorization();
 

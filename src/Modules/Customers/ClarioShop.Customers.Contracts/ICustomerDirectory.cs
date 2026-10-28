@@ -18,6 +18,12 @@ public interface ICustomerDirectory
 
     /// <summary>The customer with its addresses, default first; null when it does not exist.</summary>
     Task<CustomerInfo?> GetAsync(Guid customerId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The number in E.164 (<c>+8801712345678</c>), the form customers are matched by; null when it is not a
+    /// Bangladeshi mobile number. Creates nothing.
+    /// </summary>
+    string? NormalizePhone(string phone);
 }
 
 /// <param name="Phone">E.164, e.g. <c>+8801712345678</c>.</param>

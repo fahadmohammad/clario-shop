@@ -5,6 +5,7 @@ using ClarioShop.Identity;
 using ClarioShop.Infrastructure.Endpoints;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Security;
+using ClarioShop.Infrastructure.Sms;
 using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Inventory;
 using ClarioShop.Ordering;
@@ -35,6 +36,7 @@ builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecu
 builder.Services.AddClarioTenancy(builder.Configuration);
 builder.Services.AddClarioMessaging(builder.Configuration, useRabbitMq);
 builder.Services.AddPermissionAuthorization();
+builder.Services.AddClarioSms();
 builder.Services.AddClarioRateLimiting(builder.Configuration);
 builder.Services.AddClarioCors(builder.Configuration);
 

@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClarioShop.Identity.Contracts\ClarioShop.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\Customers\ClarioShop.Customers.Contracts\ClarioShop.Customers.Contracts.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\ClarioShop.Infrastructure\ClarioShop.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
