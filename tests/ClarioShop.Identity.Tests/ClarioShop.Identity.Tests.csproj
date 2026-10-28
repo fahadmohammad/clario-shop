@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Identity\ClarioShop.Identity\ClarioShop.Identity.csproj" />
+  </ItemGroup>
+</Project>

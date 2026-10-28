@@ -24,4 +24,23 @@ internal sealed class AuthOptions
     public string? EncryptionCertificate { get; set; }
 
     public string? CertificatePassword { get; set; }
+
+    public OtpOptions Otp { get; set; } = new();
+}
+
+/// <summary>Shopper sign-in by one-time code, section "Auth:Otp".</summary>
+internal sealed class OtpOptions
+{
+    public TimeSpan CodeLifetime { get; set; } = TimeSpan.FromMinutes(3);
+
+    /// <summary>Codes that may be tried against one sent code, right or wrong.</summary>
+    public int MaxAttempts { get; set; } = 5;
+
+    /// <summary>Codes that may be sent to one phone per <see cref="RequestWindow"/>.</summary>
+    public int RequestsPerPhone { get; set; } = 3;
+
+    /// <summary>Codes that may be requested from one IP address per <see cref="RequestWindow"/>.</summary>
+    public int RequestsPerAddress { get; set; } = 20;
+
+    public TimeSpan RequestWindow { get; set; } = TimeSpan.FromMinutes(15);
 }

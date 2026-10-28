@@ -49,7 +49,7 @@ public static class CreateUser
 
             db.Users.Add(user);
             await db.SaveChangesAsync(cancellationToken);
-            return new Response(user.Id, user.Email);
+            return new Response(user.Id, command.Email.Trim());
         }
     }
 }

@@ -13,6 +13,8 @@ internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> opti
 
     public DbSet<Role> Roles => Set<Role>();
 
+    public DbSet<OtpCode> OtpCodes => Set<OtpCode>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

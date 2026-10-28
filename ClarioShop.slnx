@@ -41,6 +41,7 @@
     <Project Path="tests/ClarioShop.ArchitectureTests/ClarioShop.ArchitectureTests.csproj" />
     <Project Path="tests/ClarioShop.Catalog.Tests/ClarioShop.Catalog.Tests.csproj" />
     <Project Path="tests/ClarioShop.Customers.Tests/ClarioShop.Customers.Tests.csproj" />
+    <Project Path="tests/ClarioShop.Identity.Tests/ClarioShop.Identity.Tests.csproj" />
     <Project Path="tests/ClarioShop.IntegrationTests/ClarioShop.IntegrationTests.csproj" />
     <Project Path="tests/ClarioShop.Inventory.Tests/ClarioShop.Inventory.Tests.csproj" />
     <Project Path="tests/ClarioShop.Ordering.Tests/ClarioShop.Ordering.Tests.csproj" />

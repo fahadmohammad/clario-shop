@@ -16,6 +16,8 @@ public sealed record Error(string Code, string Message, ErrorType Type)
 
     public static Error Forbidden(string code, string message) => new(code, message, ErrorType.Forbidden);
 
+    public static Error TooManyRequests(string code, string message) => new(code, message, ErrorType.TooManyRequests);
+
     public static Error Validation(IReadOnlyDictionary<string, string[]> errors) =>
         new("validation", "One or more validation errors occurred.", ErrorType.Validation) { ValidationErrors = errors };
 

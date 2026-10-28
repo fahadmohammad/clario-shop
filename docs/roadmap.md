@@ -60,7 +60,7 @@ choice is configuration later, never a blocker now.
   - Done when: existing integration tests still pass on the new token server; refresh, rotation (a redeemed refresh token is rejected) and cross-tenant refresh are tested.
 
 ### 6b. phone-otp
-- [ ] **Shopper sign-in with phone OTP**
+- [x] **Shopper sign-in with phone OTP** — #12
   - Shopper sign-in with phone + OTP as an OpenIddict grant: 6 digits, 3-minute expiry, 5 attempts, rate limited per phone and per IP (Redis via HybridCache/distributed cache; in-memory fallback in tests). OTP sent through an `ISmsSender` with a logging implementation.
   - Shopper accounts link to the Customers module by phone (via Contracts), never by reading its tables.
   - Done when: OTP flow, expiry, attempt limit and rate limit are tested.

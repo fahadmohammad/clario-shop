@@ -9,7 +9,7 @@ public static class GetCurrentUser
 {
     public sealed record Query(ClaimsPrincipal Principal);
 
-    public sealed record Response(Guid Id, string Email, string FullName, IReadOnlyList<string> Permissions);
+    public sealed record Response(Guid Id, string? Email, string? Phone, string FullName, IReadOnlyList<string> Permissions);
 
     internal sealed class Handler(IdentityDbContext db) : ICommandHandler<Query, Response>
     {
@@ -27,7 +27,7 @@ public static class GetCurrentUser
             }
 
             var permissions = query.Principal.FindAll(ClarioClaimTypes.Permission).Select(claim => claim.Value).Order().ToList();
-            return new Response(user.Id, user.Email, user.FullName, permissions);
+            return new Response(user.Id, user.Email, user.Phone, user.FullName, permissions);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Security.Cryptography.X509Certificates;
+using ClarioShop.Identity.Features.Tokens;
 using ClarioShop.Identity.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -13,7 +14,7 @@ internal static class TokenServerRegistration
     public const string TokenEndpoint = "api/identity/token";
 
     /// <summary>
-    /// OpenIddict token server (password and refresh token grants) and local validation of its access tokens.
+    /// OpenIddict token server (password, shopper OTP and refresh token grants) and local validation of its access tokens.
     /// Token entries live in the tenant's identity schema, so a refresh token only works on the shop that issued it.
     /// </summary>
     public static IServiceCollection AddTokenServer(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
@@ -29,6 +30,7 @@ internal static class TokenServerRegistration
                     .SetTokenEndpointUris(TokenEndpoint)
                     .AllowPasswordFlow()
                     .AllowRefreshTokenFlow()
+                    .AllowCustomFlow(OtpGrant.GrantType)
                     .AcceptAnonymousClients()
                     .RegisterScopes(Scopes.OfflineAccess)
                     .SetAccessTokenLifetime(auth.AccessTokenLifetime)
@@ -52,6 +54,10 @@ internal static class TokenServerRegistration
 
         services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
         services.AddScoped<TokenPrincipalFactory>();
+        services.AddScoped<OtpRequestThrottle>();
+
+        // Redis when the host registered it; otherwise in-memory (single instance, development and tests).
+        services.AddDistributedMemoryCache();
         return services;
     }
 

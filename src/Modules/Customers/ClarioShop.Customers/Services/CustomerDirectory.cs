@@ -40,6 +40,8 @@ internal sealed class CustomerDirectory(CustomersDbContext db, TimeProvider cloc
         return customer?.ToInfo();
     }
 
+    public string? NormalizePhone(string phone) => PhoneNumber.TryNormalize(phone, out var normalized) ? normalized : null;
+
     private async Task<CustomerInfo> FindOrCreateAsync(string phone, string? name, CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();

@@ -25,6 +25,8 @@ internal sealed class TokenPrincipalFactory(IdentityDbContext db, ITenantContext
         var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme, Claims.Name, Claims.Role);
         identity.SetClaim(Claims.Subject, user.Id.ToString())
             .SetClaim(Claims.Email, user.Email)
+            .SetClaim(Claims.PhoneNumber, user.Phone)
+            .SetClaim(ClarioClaimTypes.Customer, user.CustomerId?.ToString())
             .SetClaim(Claims.Name, user.FullName)
             .SetClaim(ClarioClaimTypes.Tenant, tenant.TenantId.ToString())
             .SetClaims(ClarioClaimTypes.Permission, [.. permissions]);
