@@ -41,6 +41,10 @@
   <Folder Name="/src/Modules/Platform/">
     <Project Path="src/Modules/Platform/ClarioShop.Platform/ClarioShop.Platform.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Reporting/">
+    <Project Path="src/Modules/Reporting/ClarioShop.Reporting.Contracts/ClarioShop.Reporting.Contracts.csproj" />
+    <Project Path="src/Modules/Reporting/ClarioShop.Reporting/ClarioShop.Reporting.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Settings/">
     <Project Path="src/Modules/Settings/ClarioShop.Settings.Contracts/ClarioShop.Settings.Contracts.csproj" />
     <Project Path="src/Modules/Settings/ClarioShop.Settings/ClarioShop.Settings.csproj" />
@@ -55,6 +59,7 @@
     <Project Path="tests/ClarioShop.Notifications.Tests/ClarioShop.Notifications.Tests.csproj" />
     <Project Path="tests/ClarioShop.Ordering.Tests/ClarioShop.Ordering.Tests.csproj" />
     <Project Path="tests/ClarioShop.Payments.Tests/ClarioShop.Payments.Tests.csproj" />
+    <Project Path="tests/ClarioShop.Reporting.Tests/ClarioShop.Reporting.Tests.csproj" />
     <Project Path="tests/ClarioShop.Settings.Tests/ClarioShop.Settings.Tests.csproj" />
   </Folder>
 </Solution>

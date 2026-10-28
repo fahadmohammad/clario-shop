@@ -104,7 +104,7 @@ choice is configuration later, never a blocker now.
   - Notifications renders a tenant's own template when it has one, the built-in default otherwise, read through `ISettingsQueries` (cached, invalidated on change).
 
 ### 11a. sales-reports
-- [~] **Sales reports**
+- [x] **Sales reports** — #20
   - Reporting module builds its own projections from Ordering's events (never reads other schemas): daily sales totals, orders by status, top variants.
   - Permission `reports.sales.view`.
 

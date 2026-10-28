@@ -21,4 +21,14 @@ public sealed record OrderPlaced(
     IReadOnlyList<OrderPlacedLine> Lines) : IIntegrationEvent;
 
 /// <param name="Quantity">Units, or kg for items sold by weight.</param>
-public sealed record OrderPlacedLine(Guid VariantId, string Sku, decimal Quantity, decimal UnitPrice);
+/// <param name="LineTotal"><paramref name="UnitPrice"/> times <paramref name="Quantity"/>, rounded to whole poisha.</param>
+/// <param name="ProductName">The names when the order was placed, as on its lines.</param>
+/// <param name="VariantName">E.g. the size, as on the order's lines.</param>
+public sealed record OrderPlacedLine(
+    Guid VariantId,
+    string Sku,
+    decimal Quantity,
+    decimal UnitPrice,
+    decimal LineTotal,
+    string ProductName,
+    string VariantName);

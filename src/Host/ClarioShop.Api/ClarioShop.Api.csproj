@@ -21,5 +21,6 @@
     <ProjectReference Include="..\..\Modules\Settings\ClarioShop.Settings\ClarioShop.Settings.csproj" />
     <ProjectReference Include="..\..\Modules\Payments\ClarioShop.Payments\ClarioShop.Payments.csproj" />
     <ProjectReference Include="..\..\Modules\Notifications\ClarioShop.Notifications\ClarioShop.Notifications.csproj" />
+    <ProjectReference Include="..\..\Modules\Reporting\ClarioShop.Reporting\ClarioShop.Reporting.csproj" />
   </ItemGroup>
 </Project>
