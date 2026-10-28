@@ -35,7 +35,7 @@ List open PRs whose head branch starts with `roadmap/`. There should be at most 
 | Draft, last commit ≥ 2 h old | A previous run died mid-step. Continue that step on its branch (go to step 3, skipping branch creation). |
 | Merge conflict with `main` | Merge `origin/main` into the branch (never rebase or force-push), resolve, regenerate migrations' model snapshots with `dotnet ef` if they conflict, verify, push. Stop the run. |
 | CI failed | Reproduce locally (`scripts/verify.sh` or the failing project), root-cause, fix, verify, push. Stop the run. |
-| CI pending | Stop the run; the next run picks it up. |
+| CI pending | Wait for it: re-check every 1–2 minutes for up to 15 minutes, then handle the result as below. If it is still pending after 15 minutes, stop the run; the next run picks it up. |
 | Unresolved review threads or change requests | Address each (fix and push, or reply with the reason if not changing), resolve threads you addressed. Stop the run. |
 | CI green, mergeable, no unresolved threads, not draft | Squash-merge it (title = PR title). Continue with step 2. |
 
@@ -50,7 +50,8 @@ comment on the PR, notify the owner, and stop. Do not start later steps while a 
 
 Check the CI result for the latest commit on `main` (the merge you just made, if any).
 
-- Pending → stop the run (next run continues).
+- Pending → wait for it: re-check every 1–2 minutes for up to 15 minutes (CI usually takes 2–3). If it is
+  still pending after that, stop the run (next run continues). Do not start the next step on a pending `main`.
 - Failed → this is a broken previous step. Create `roadmap/fix-<name>` from `main`, fix the root cause,
   verify, open a ready PR titled `fix: …`, and stop. The next run merges it like any roadmap PR.
 - Green → step 3.
