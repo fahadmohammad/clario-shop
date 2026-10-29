@@ -4,7 +4,8 @@ namespace ClarioShop.Notifications.Domain;
 
 /// <summary>
 /// One message to one recipient, for audit and retries: what was sent, to whom, and how each try went. There is at
-/// most one per event and channel, so a redelivered event never sends the same message twice.
+/// most one per event and channel, so a redelivered event never sends the same message twice. A message to a shopper
+/// is about an order; a stock alert goes to the store's contact and has no order.
 /// </summary>
 internal sealed class NotificationLog : Entity
 {
@@ -20,17 +21,22 @@ internal sealed class NotificationLog : Entity
     {
     }
 
-    /// <summary>The integration event that caused the message.</summary>
+    /// <summary>
+    /// What the message is sent once for: the integration event that caused it, or for a drift alert the drift check
+    /// run, so a check that corrects many stock levels sends one alert.
+    /// </summary>
     public Guid EventId { get; private set; }
 
-    public OrderNotificationKind Kind { get; private set; }
+    public NotificationKind Kind { get; private set; }
 
-    public Guid OrderId { get; private set; }
+    /// <summary>Null for a stock alert.</summary>
+    public Guid? OrderId { get; private set; }
 
-    /// <summary>E.g. <c>CS-000123</c>.</summary>
-    public string OrderNumber { get; private set; } = string.Empty;
+    /// <summary>E.g. <c>CS-000123</c>; null for a stock alert.</summary>
+    public string? OrderNumber { get; private set; }
 
-    public Guid CustomerId { get; private set; }
+    /// <summary>Null for a stock alert.</summary>
+    public Guid? CustomerId { get; private set; }
 
     public NotificationChannel Channel { get; private set; }
 
@@ -63,10 +69,10 @@ internal sealed class NotificationLog : Entity
     /// <summary>Concurrency token (PostgreSQL xmin), so two senders cannot both take the same try.</summary>
     public uint RowVersion { get; private set; }
 
-    /// <summary>A message ready for its first try now.</summary>
+    /// <summary>A message to the shopper about their order, ready for its first try now.</summary>
     public static NotificationLog Create(
         Guid eventId,
-        OrderNotificationKind kind,
+        NotificationKind kind,
         Guid orderId,
         string orderNumber,
         Guid customerId,
@@ -75,23 +81,26 @@ internal sealed class NotificationLog : Entity
         string language,
         string? subject,
         string body,
-        DateTimeOffset now) => new()
-        {
-            Id = Guid.CreateVersion7(),
-            EventId = eventId,
-            Kind = kind,
-            OrderId = orderId,
-            OrderNumber = orderNumber,
-            CustomerId = customerId,
-            Channel = channel,
-            Recipient = recipient,
-            Language = language,
-            Subject = channel == NotificationChannel.Email ? Clip(subject, MaxSubjectLength) : null,
-            Body = Clip(body, MaxBodyLength)!,
-            Status = NotificationStatus.Pending,
-            CreatedAt = now,
-            NextAttemptAt = now,
-        };
+        DateTimeOffset now)
+    {
+        var log = New(eventId, kind, channel, recipient, language, subject, body, now);
+        log.OrderId = orderId;
+        log.OrderNumber = orderNumber;
+        log.CustomerId = customerId;
+        return log;
+    }
+
+    /// <summary>A stock alert to the store's contact, ready for its first try now.</summary>
+    /// <param name="eventId">See <see cref="EventId"/>.</param>
+    public static NotificationLog CreateStaffAlert(
+        Guid eventId,
+        NotificationKind kind,
+        NotificationChannel channel,
+        string recipient,
+        string language,
+        string? subject,
+        string body,
+        DateTimeOffset now) => New(eventId, kind, channel, recipient, language, subject, body, now);
 
     /// <summary>
     /// Starts a try when one is due, and holds the message for <see cref="RetryPolicy.ClaimTimeout"/> so no other
@@ -130,6 +139,29 @@ internal sealed class NotificationLog : Entity
 
         NextAttemptAt = now + policy.DelayAfter(Attempts);
     }
+
+    private static NotificationLog New(
+        Guid eventId,
+        NotificationKind kind,
+        NotificationChannel channel,
+        string recipient,
+        string language,
+        string? subject,
+        string body,
+        DateTimeOffset now) => new()
+        {
+            Id = Guid.CreateVersion7(),
+            EventId = eventId,
+            Kind = kind,
+            Channel = channel,
+            Recipient = recipient,
+            Language = language,
+            Subject = channel == NotificationChannel.Email ? Clip(subject, MaxSubjectLength) : null,
+            Body = Clip(body, MaxBodyLength)!,
+            Status = NotificationStatus.Pending,
+            CreatedAt = now,
+            NextAttemptAt = now,
+        };
 
     private static string? Clip(string? value, int maxLength) =>
         value is { Length: > 0 } && value.Length > maxLength ? value[..maxLength] : value;

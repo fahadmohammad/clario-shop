@@ -8,7 +8,7 @@ public sealed class TemplateTests
     public static TheoryData<string, string, string> EveryTemplate()
     {
         var data = new TheoryData<string, string, string>();
-        foreach (var kind in Enum.GetNames<OrderNotificationKind>())
+        foreach (var kind in Enum.GetNames<NotificationKind>().Except(StaffAlertTemplates.Kinds.Select(kind => kind.ToString())))
         {
             foreach (var channel in Enum.GetNames<NotificationChannel>())
             {
@@ -24,7 +24,7 @@ public sealed class TemplateTests
     [MemberData(nameof(EveryTemplate))]
     public void For_EveryKindChannelAndLanguage_NamesStoreAndOrder(string kind, string channel, string language)
     {
-        var template = DefaultTemplates.For(Enum.Parse<OrderNotificationKind>(kind), Enum.Parse<NotificationChannel>(channel), language);
+        var template = DefaultTemplates.For(Enum.Parse<NotificationKind>(kind), Enum.Parse<NotificationChannel>(channel), language);
 
         var message = template.Render(new Dictionary<string, string>
         {

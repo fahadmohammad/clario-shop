@@ -12,7 +12,7 @@ internal sealed class OrderConfirmedHandler(OrderNotifier notifier) : IIntegrati
         notifier.NotifyAsync(
             new OrderNotification(
                 integrationEvent.EventId,
-                OrderNotificationKind.OrderConfirmed,
+                NotificationKind.OrderConfirmed,
                 integrationEvent.OrderId,
                 integrationEvent.OrderNumber,
                 integrationEvent.CustomerId),

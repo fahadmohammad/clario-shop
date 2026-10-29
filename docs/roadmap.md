@@ -128,8 +128,9 @@ choice is configuration later, never a blocker now.
   - Done here: Inventory audits stock adjustments; Identity audits staff accounts created and role changes (new endpoint to change a user's roles). Catalog has no price change yet, so auditing it moves to step 13.
 
 ### 12d. staff-alerts
-- [~] **Stock alerts to staff**
+- [x] **Stock alerts to staff** — #25
   - Notifications consumes `StockWentNegative` and `StockDriftDetected` and tells the store's contact (email and SMS from Settings) in the store's language.
+  - Done here: one alert per negative-stock event and one per drift check (not per corrected level); built-in Bangla and English text, not editable per store yet.
 
 ### 13. catalog-completion
 - [ ] **Catalog for a real storefront**

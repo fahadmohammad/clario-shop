@@ -19,7 +19,7 @@ public sealed class NotificationLogTests
     [Fact]
     public void Create_LongSubjectAndBody_AreClipped()
     {
-        var log = NotificationLog.Create(Guid.CreateVersion7(), OrderNotificationKind.OrderPlaced, Guid.CreateVersion7(), "CS-000001", Guid.CreateVersion7(),
+        var log = NotificationLog.Create(Guid.CreateVersion7(), NotificationKind.OrderPlaced, Guid.CreateVersion7(), "CS-000001", Guid.CreateVersion7(),
             NotificationChannel.Email, "rahim@example.com", "en", new string('s', 300), new string('b', 3000), Now);
 
         Assert.Equal((NotificationLog.MaxSubjectLength, NotificationLog.MaxBodyLength), (log.Subject!.Length, log.Body.Length));
@@ -116,6 +116,6 @@ public sealed class NotificationLogTests
     }
 
     private static NotificationLog Sms() =>
-        NotificationLog.Create(Guid.CreateVersion7(), OrderNotificationKind.OrderShipped, Guid.CreateVersion7(), "CS-000001", Guid.CreateVersion7(),
+        NotificationLog.Create(Guid.CreateVersion7(), NotificationKind.OrderShipped, Guid.CreateVersion7(), "CS-000001", Guid.CreateVersion7(),
             NotificationChannel.Sms, "+8801712345678", "en", "ignored for SMS", "Your order CS-000001 is on its way.", Now);
 }

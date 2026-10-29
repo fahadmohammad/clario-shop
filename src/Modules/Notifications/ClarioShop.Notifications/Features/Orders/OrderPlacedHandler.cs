@@ -17,7 +17,7 @@ internal sealed class OrderPlacedHandler(OrderNotifier notifier) : IIntegrationE
             ? notifier.NotifyAsync(
                 new OrderNotification(
                     integrationEvent.EventId,
-                    OrderNotificationKind.OrderPlaced,
+                    NotificationKind.OrderPlaced,
                     integrationEvent.OrderId,
                     integrationEvent.OrderNumber,
                     integrationEvent.CustomerId,
