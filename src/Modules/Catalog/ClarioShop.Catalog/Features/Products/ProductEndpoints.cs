@@ -11,7 +11,7 @@ internal sealed class ProductEndpoints : IEndpointGroup
         group.MapGet("/", static async ([AsParameters] ListProducts.Query query, ListProducts.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(query, cancellationToken)).ToHttpResult())
             .WithName("ListProducts")
-            .WithSummary("Published products for the storefront, newest first, with search and category filter.")
+            .WithSummary("Published products for the storefront, newest first, with search, category and brand filters.")
             .WithValidation<ListProducts.Query>()
             .Produces<ListProducts.Response>()
             .AllowAnonymous();
@@ -102,5 +102,15 @@ internal sealed class ProductEndpoints : IEndpointGroup
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict)
             .RequirePermission(CatalogPermissions.ProductsEdit);
+
+        // Not under /products: a product whose slug matched the extra segment would vanish from the storefront.
+        app.MapGroup("/api/catalog/back-office/products").WithTags("Catalog")
+            .MapGet("/", static async ([AsParameters] ListAllProducts.Query query, ListAllProducts.Handler handler, CancellationToken cancellationToken) =>
+                (await handler.HandleAsync(query, cancellationToken)).ToHttpResult())
+            .WithName("ListAllProducts")
+            .WithSummary("Every product for the back office (drafts and archived ones included), newest first, with search by name or SKU and status, category and brand filters.")
+            .WithValidation<ListAllProducts.Query>()
+            .Produces<ListAllProducts.Response>()
+            .RequirePermission(CatalogPermissions.ProductsView);
     }
 }

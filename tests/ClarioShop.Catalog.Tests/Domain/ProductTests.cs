@@ -71,5 +71,5 @@ public sealed class ProductTests
     }
 
     private static Result<Product> Create(params VariantSpec[] variants) =>
-        Product.Create("Chinigura Rice", "chinigura-rice", null, null, "Pran", variants, Now);
+        Product.Create("Chinigura Rice", "chinigura-rice", null, null, null, variants, Now);
 }

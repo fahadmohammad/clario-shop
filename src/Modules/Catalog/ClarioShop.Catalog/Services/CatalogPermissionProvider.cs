@@ -11,6 +11,7 @@ internal sealed class CatalogPermissionProvider : IPermissionProvider
         new(CatalogPermissions.ProductsEdit, "catalog", "Create and edit products"),
         new(CatalogPermissions.ProductsPublish, "catalog", "Publish products to the storefront"),
         new(CatalogPermissions.CategoriesEdit, "catalog", "Create and edit categories"),
+        new(CatalogPermissions.BrandsEdit, "catalog", "Create and rename brands"),
 
         // Kept out of the "catalog" group so only the Owner gets it, not the Catalog Manager whose changes it shows.
         new(CatalogPermissions.AuditView, "audit", "View the audit log of price changes"),
