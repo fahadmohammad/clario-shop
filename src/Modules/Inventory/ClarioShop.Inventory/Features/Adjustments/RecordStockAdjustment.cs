@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ClarioShop.Infrastructure.Auditing;
 using ClarioShop.Inventory.Domain;
 using ClarioShop.Inventory.Persistence;
 using ClarioShop.Inventory.Services;
@@ -40,7 +41,15 @@ public static class RecordStockAdjustment
         }
     }
 
-    internal sealed class Handler(InventoryDbContext db, LocationResolver locations, ItemRegistry items, TimeProvider clock)
+    /// <summary>The audited values of an adjustment: each adjusted variant's stock on hand at the location.</summary>
+    internal sealed record AuditedLevel(Guid VariantId, decimal OnHand);
+
+    internal sealed class Handler(
+        InventoryDbContext db,
+        LocationResolver locations,
+        ItemRegistry items,
+        AuditTrail audit,
+        TimeProvider clock)
         : ICommandHandler<Command, Response>
     {
         public async Task<Result<Response>> HandleAsync(Command command, CancellationToken cancellationToken) =>
@@ -74,6 +83,7 @@ public static class RecordStockAdjustment
 
                 var adjustment = created.Value;
                 var levels = await db.LoadOrCreateAsync(location.Value, variantIds, now, ct);
+                var before = Audited(levels.Values);
                 foreach (var movement in adjustment.ToMovements())
                 {
                     var applied = levels[movement.VariantId].ApplyAdjustment(movement);
@@ -86,8 +96,18 @@ public static class RecordStockAdjustment
                 }
 
                 db.Adjustments.Add(adjustment);
+                audit.Record(
+                    db,
+                    AuditActions.StockAdjusted,
+                    nameof(StockAdjustment),
+                    adjustment.Id,
+                    new { adjustment.LocationId, Levels = before },
+                    new { adjustment.LocationId, Reason = adjustment.Reason.ToString(), adjustment.Note, Levels = Audited(levels.Values) });
                 await db.SaveChangesAsync(ct);
                 return new Response(adjustment.Id, adjustment.LocationId, adjustment.Reason.ToString(), StockLevelItem.From(levels.Values));
             }, cancellationToken);
+
+        private static List<AuditedLevel> Audited(IEnumerable<StockLevel> levels) =>
+            levels.OrderBy(level => level.VariantId).Select(level => new AuditedLevel(level.VariantId, level.OnHand)).ToList();
     }
 }

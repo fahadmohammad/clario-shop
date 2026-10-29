@@ -1,6 +1,7 @@
 using ClarioShop.Identity.Contracts;
 using ClarioShop.Identity.Domain;
 using ClarioShop.Identity.Persistence;
+using ClarioShop.Infrastructure.Auditing;
 using Microsoft.AspNetCore.Identity;
 
 namespace ClarioShop.Identity.Services;
@@ -9,6 +10,7 @@ internal sealed class IdentityProvisioning(
     IdentityDbContext db,
     SystemRoleSynchronizer roles,
     IPasswordHasher<User> passwordHasher,
+    AuditTrail audit,
     TimeProvider clock) : IIdentityProvisioning
 {
     public async Task<Result> CreateOwnerAsync(string email, string fullName, string password, CancellationToken cancellationToken)
@@ -27,6 +29,7 @@ internal sealed class IdentityProvisioning(
         owner.AssignRole(ownerRole);
 
         db.Users.Add(owner);
+        audit.Record(db, AuditActions.UserCreated, nameof(User), owner.Id, null, new { owner.Email, owner.FullName, Roles = new[] { ownerRole.Name } });
         await db.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

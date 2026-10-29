@@ -12,5 +12,8 @@ internal sealed class InventoryPermissionProvider : IPermissionProvider
         new(InventoryPermissions.Adjust, "inventory", "Adjust stock for damage, expiry, theft or count corrections"),
         new(InventoryPermissions.Transfer, "inventory", "Transfer stock between locations"),
         new(InventoryPermissions.LocationsEdit, "inventory", "Create and edit stock locations"),
+
+        // Kept out of the "inventory" group so only the Owner gets it, not the Inventory Clerk whose actions it shows.
+        new(InventoryPermissions.AuditView, "audit", "View the audit log of stock adjustments"),
     ];
 }

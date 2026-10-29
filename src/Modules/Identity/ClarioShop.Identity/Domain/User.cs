@@ -58,6 +58,24 @@ internal sealed class User : Entity
 
     public void LinkCustomer(Guid customerId) => CustomerId = customerId;
 
+    /// <summary>Replaces the user's roles; false when they already had exactly these.</summary>
+    public bool SetRoles(IReadOnlyCollection<Role> wanted)
+    {
+        var wantedIds = wanted.Select(role => role.Id).ToHashSet();
+        if (wantedIds.SetEquals(roles.Select(existing => existing.RoleId)))
+        {
+            return false;
+        }
+
+        roles.RemoveAll(existing => !wantedIds.Contains(existing.RoleId));
+        foreach (var role in wanted)
+        {
+            AssignRole(role);
+        }
+
+        return true;
+    }
+
     public void AssignRole(Role role)
     {
         if (roles.All(existing => existing.RoleId != role.Id))

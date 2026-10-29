@@ -1,5 +1,6 @@
 using ClarioShop.Identity.Domain;
 using ClarioShop.Identity.Persistence;
+using ClarioShop.Infrastructure.Auditing;
 using Microsoft.AspNetCore.Identity;
 
 namespace ClarioShop.Identity.Features.Users;
@@ -25,7 +26,7 @@ public static class CreateUser
         }
     }
 
-    internal sealed class Handler(IdentityDbContext db, IPasswordHasher<User> passwordHasher, TimeProvider clock)
+    internal sealed class Handler(IdentityDbContext db, IPasswordHasher<User> passwordHasher, AuditTrail audit, TimeProvider clock)
         : ICommandHandler<Command, Response>
     {
         public async Task<Result<Response>> HandleAsync(Command command, CancellationToken cancellationToken)
@@ -40,7 +41,7 @@ public static class CreateUser
             var roles = await db.Roles.Where(role => wanted.Contains(role.NormalizedName)).ToListAsync(cancellationToken);
             if (roles.Count != wanted.Count)
             {
-                return Error.Validation(nameof(Command.Roles), "One or more roles do not exist.");
+                return IdentityErrors.UnknownRoles(nameof(Command.Roles));
             }
 
             var user = User.Create(command.Email, command.FullName, clock.GetUtcNow());
@@ -48,6 +49,12 @@ public static class CreateUser
             roles.ForEach(user.AssignRole);
 
             db.Users.Add(user);
+            audit.Record(db, AuditActions.UserCreated, nameof(User), user.Id, null, new
+            {
+                user.Email,
+                user.FullName,
+                Roles = roles.Select(role => role.Name).Order(StringComparer.Ordinal).ToList(),
+            });
             await db.SaveChangesAsync(cancellationToken);
             return new Response(user.Id, command.Email.Trim());
         }

@@ -1,3 +1,4 @@
+using ClarioShop.Infrastructure.Auditing;
 using ClarioShop.Infrastructure.Persistence;
 using ClarioShop.Inventory.Contracts.Events;
 using ClarioShop.Inventory.Domain;
@@ -28,10 +29,18 @@ internal sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> op
 
     public DbSet<StockDrift> Drifts => Set<StockDrift>();
 
+    public DbSet<AuditLogEntry> AuditLog => Set<AuditLogEntry>();
+
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         await PublishStockWentNegativeAsync(cancellationToken);
         return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.MapAuditLog(Schema);
     }
 
     /// <summary>

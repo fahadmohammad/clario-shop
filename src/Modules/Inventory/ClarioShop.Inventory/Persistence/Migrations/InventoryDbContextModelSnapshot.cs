@@ -23,6 +23,52 @@ namespace ClarioShop.Inventory.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ClarioShop.Infrastructure.Auditing.AuditLogEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("After")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Before")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Device")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAt")
+                        .HasDatabaseName("IX_inventory_AuditLog_OccurredAt");
+
+                    b.HasIndex("EntityType", "EntityId")
+                        .HasDatabaseName("IX_inventory_AuditLog_Entity");
+
+                    b.ToTable("AuditLog", "inventory");
+                });
+
             modelBuilder.Entity("ClarioShop.Infrastructure.Persistence.InboxMessage", b =>
                 {
                     b.Property<Guid>("MessageId")
