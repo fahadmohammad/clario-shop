@@ -1,3 +1,4 @@
+using ClarioShop.Inventory.Contracts;
 using ClarioShop.Reporting.Contracts;
 
 namespace ClarioShop.Reporting.Features.Reports;
@@ -31,5 +32,29 @@ internal sealed class ReportEndpoints : IEndpointGroup
             .Produces<GetOrdersByStatus.Response>()
             .ProducesValidationProblem()
             .RequirePermission(ReportingPermissions.SalesView);
+
+        group.MapGet("/inventory/valuation", static async ([AsParameters] GetStockValuation.Query query, GetStockValuation.Handler handler, CancellationToken cancellationToken) =>
+                (await handler.HandleAsync(query, cancellationToken)).ToHttpResult())
+            .WithName("GetStockValuation")
+            .WithSummary("Stock on hand at weighted average receipt cost, per location and per variant, most valuable first.")
+            .WithValidation<GetStockValuation.Query>()
+            .Produces<StockValuation>()
+            .RequirePermission(ReportingPermissions.InventoryView);
+
+        group.MapGet("/inventory/low-stock", static async ([AsParameters] GetLowStock.Query query, GetLowStock.Handler handler, CancellationToken cancellationToken) =>
+                (await handler.HandleAsync(query, cancellationToken)).ToHttpResult())
+            .WithName("GetLowStock")
+            .WithSummary("Stock available at or below its reorder level, including stock that ran out, lowest first.")
+            .WithValidation<GetLowStock.Query>()
+            .Produces<StockAlertPage>()
+            .RequirePermission(ReportingPermissions.InventoryView);
+
+        group.MapGet("/inventory/negative-stock", static async ([AsParameters] GetNegativeStock.Query query, GetNegativeStock.Handler handler, CancellationToken cancellationToken) =>
+                (await handler.HandleAsync(query, cancellationToken)).ToHttpResult())
+            .WithName("GetNegativeStock")
+            .WithSummary("Stock with less than zero on hand, lowest first.")
+            .WithValidation<GetNegativeStock.Query>()
+            .Produces<StockAlertPage>()
+            .RequirePermission(ReportingPermissions.InventoryView);
     }
 }

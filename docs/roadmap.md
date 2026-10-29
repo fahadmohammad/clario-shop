@@ -109,7 +109,7 @@ choice is configuration later, never a blocker now.
   - Permission `reports.sales.view`.
 
 ### 11b. inventory-reports
-- [ ] **Inventory reports**
+- [x] **Inventory reports** — #21
   - Inventory reports via an `IInventoryQueries` contract: stock value at cost, low and negative stock.
   - Permission `reports.inventory.view`.
 

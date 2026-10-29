@@ -15,5 +15,6 @@ internal sealed class InventoryItemConfiguration : IEntityTypeConfiguration<Inve
         builder.Property(item => item.ProductName).HasMaxLength(200);
         builder.Property(item => item.VariantName).HasMaxLength(100);
         builder.HasIndex(item => item.ProductId);
+        builder.Property(item => item.ReorderLevel).HasPrecision(18, 3);
     }
 }

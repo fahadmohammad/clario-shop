@@ -93,6 +93,10 @@ namespace ClarioShop.Inventory.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<decimal?>("ReorderLevel")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
                     b.Property<string>("Sku")
                         .IsRequired()
                         .HasMaxLength(64)
