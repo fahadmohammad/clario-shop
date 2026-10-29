@@ -24,6 +24,41 @@ namespace ClarioShop.Catalog.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ClarioShop.Catalog.Domain.Brand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Brands", "catalog");
+                });
+
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -65,9 +100,8 @@ namespace ClarioShop.Catalog.Persistence.Migrations
                     b.Property<DateTimeOffset?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Brand")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<Guid?>("BrandId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("CategoryId")
                         .HasColumnType("uuid");
@@ -106,10 +140,14 @@ namespace ClarioShop.Catalog.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BrandId");
+
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
+
+                    b.HasIndex("Status", "BrandId");
 
                     b.HasIndex("Status", "CategoryId");
 
@@ -282,6 +320,11 @@ namespace ClarioShop.Catalog.Persistence.Migrations
 
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Product", b =>
                 {
+                    b.HasOne("ClarioShop.Catalog.Domain.Brand", null)
+                        .WithMany()
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ClarioShop.Catalog.Domain.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")

@@ -12,9 +12,11 @@ public static class GetProductBySlug
         string Name,
         string Slug,
         string Description,
-        string? Brand,
+        BrandRef? Brand,
         CategoryRef? Category,
         IReadOnlyList<VariantItem> Variants);
+
+    public sealed record BrandRef(string Name, string Slug);
 
     public sealed record CategoryRef(string Name, string Slug);
 
@@ -31,7 +33,7 @@ public static class GetProductBySlug
                     p.Name,
                     p.Slug,
                     p.Description,
-                    p.Brand,
+                    db.Brands.Where(b => b.Id == p.BrandId).Select(b => new BrandRef(b.Name, b.Slug)).FirstOrDefault(),
                     db.Categories.Where(c => c.Id == p.CategoryId).Select(c => new CategoryRef(c.Name, c.Slug)).FirstOrDefault(),
                     p.Variants.Where(v => v.IsActive)
                         .OrderBy(v => v.Price)

@@ -138,7 +138,7 @@ choice is configuration later, never a blocker now.
   - Price changes publish `ProductPriceChanged` and write a row to Catalog's own `AuditLog` (the 12c pattern: `AuditTrail` and `MapAuditLog` from Infrastructure), readable behind a `catalog.audit.view` permission.
 
 ### 13b. brands
-- [~] **Brands and the back-office product list**
+- [x] **Brands and the back-office product list** — #27
   - `Brand` (replacing the free-text brand on products; existing names migrate to brands), staff create and rename; storefront filter by brand.
   - Staff product list with drafts and archived products, for the back office.
 

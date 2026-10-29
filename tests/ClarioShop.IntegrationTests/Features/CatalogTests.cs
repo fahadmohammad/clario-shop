@@ -18,12 +18,13 @@ public sealed partial class CatalogTests(ClarioApiFactory api)
         using var shopper = api.CreateTenantClient(tenant.Identifier);
 
         var category = await PostAsync<CategoryResponse>(staff, "/api/catalog/categories", new { name = "Rice & Grains" });
+        var brand = await PostAsync<BrandItem>(staff, "/api/catalog/brands", new { name = "Pran" });
         var product = await PostAsync<ProductResponse>(staff, "/api/catalog/products", new
         {
             name = "Chinigura Aromatic Rice",
             description = "Premium aromatic rice.",
             categoryId = category.Id,
-            brand = "Pran",
+            brandId = brand.Id,
             variants = new object[]
             {
                 new { sku = "RICE-CHINI-1KG", name = "1 kg", price = 165m, barcodes = new[] { "8941100500123" } },

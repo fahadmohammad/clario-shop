@@ -15,15 +15,16 @@ public sealed partial class CatalogTests
         var tenant = await api.CreateTenantAsync("edit");
         using var staff = await OwnerClientAsync(tenant);
         var product = await CreateProductAsync(staff, "Pran Mango Juice", "JUICE-MANGO-250");
+        var brand = await PostAsync<BrandItem>(staff, "/api/catalog/brands", new { name = "Pran" });
 
         var updated = await PutAsync<ProductDetails>(staff, $"/api/catalog/products/{product.Id}", new
         {
             name = "Pran Mango Juice Drink",
             description = "Made from ripe mangoes.",
-            brand = "Pran",
+            brandId = brand.Id,
         });
 
-        Assert.Equal(("Pran Mango Juice Drink", "Made from ripe mangoes.", "Pran"), (updated.Name, updated.Description, updated.Brand));
+        Assert.Equal(("Pran Mango Juice Drink", "Made from ripe mangoes.", (Guid?)brand.Id), (updated.Name, updated.Description, updated.BrandId));
         Assert.Equal(product.Slug, updated.Slug);
         var loaded = await staff.GetFromJsonAsync<ProductDetails>($"/api/catalog/products/{product.Id}", Cancel);
         Assert.Equal(("Pran Mango Juice Drink", "Draft"), (loaded!.Name, loaded.Status));
@@ -284,7 +285,7 @@ public sealed partial class CatalogTests
         string Name,
         string Slug,
         string Description,
-        string? Brand,
+        Guid? BrandId,
         string Status,
         DateTimeOffset? ArchivedAt,
         IReadOnlyList<VariantDetails> Variants);

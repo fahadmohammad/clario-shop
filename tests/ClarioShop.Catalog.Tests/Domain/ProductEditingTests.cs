@@ -11,13 +11,14 @@ public sealed class ProductEditingTests
     public void Edit_Draft_ReplacesContentAndKeepsSlug()
     {
         var product = Create();
+        var brandId = Guid.CreateVersion7();
 
-        var result = product.Edit("  Chinigura Premium Rice ", " New text ", null, "  ");
+        var result = product.Edit("  Chinigura Premium Rice ", " New text ", null, brandId);
 
         Assert.True(result.IsSuccess);
         Assert.Equal("Chinigura Premium Rice", product.Name);
         Assert.Equal("New text", product.Description);
-        Assert.Null(product.Brand);
+        Assert.Equal(brandId, product.BrandId);
         Assert.Equal("chinigura-rice", product.Slug);
     }
 
@@ -207,5 +208,5 @@ public sealed class ProductEditingTests
     }
 
     private static Product Create() =>
-        Product.Create("Chinigura Rice", "chinigura-rice", "Aromatic", null, "Pran", [new VariantSpec("RICE-1KG", "1 kg", 165m, null, null, false)], Now).Value;
+        Product.Create("Chinigura Rice", "chinigura-rice", "Aromatic", null, null, [new VariantSpec("RICE-1KG", "1 kg", 165m, null, null, false)], Now).Value;
 }

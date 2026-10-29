@@ -11,7 +11,7 @@ public static class CreateProduct
         string Name,
         string? Description,
         Guid? CategoryId,
-        string? Brand,
+        Guid? BrandId,
         IReadOnlyList<VariantInput> Variants);
 
     public sealed record Response(Guid Id, string Slug, string Status);
@@ -22,7 +22,6 @@ public static class CreateProduct
         {
             RuleFor(command => command.Name).NotEmpty().MaximumLength(200);
             RuleFor(command => command.Description).MaximumLength(10_000);
-            RuleFor(command => command.Brand).MaximumLength(100);
             RuleFor(command => command.Variants).NotEmpty();
             RuleForEach(command => command.Variants).SetValidator(new VariantInputValidator());
         }
@@ -35,6 +34,11 @@ public static class CreateProduct
             if (command.CategoryId is { } categoryId && !await db.Categories.AnyAsync(c => c.Id == categoryId, cancellationToken))
             {
                 return Error.Validation(nameof(Command.CategoryId), "The category does not exist.");
+            }
+
+            if (command.BrandId is { } brandId && !await db.Brands.AnyAsync(b => b.Id == brandId, cancellationToken))
+            {
+                return Error.Validation(nameof(Command.BrandId), "The brand does not exist.");
             }
 
             var skus = command.Variants.Select(v => v.Sku.Trim().ToUpperInvariant()).ToList();
@@ -51,7 +55,7 @@ public static class CreateProduct
                 slug,
                 command.Description,
                 command.CategoryId,
-                command.Brand,
+                command.BrandId,
                 command.Variants.Select(v => v.ToSpec()).ToList(),
                 now);
             if (created.IsFailure)

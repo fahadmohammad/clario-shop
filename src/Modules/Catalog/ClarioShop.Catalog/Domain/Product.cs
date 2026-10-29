@@ -20,7 +20,7 @@ internal sealed class Product : Entity
 
     public Guid? CategoryId { get; private set; }
 
-    public string? Brand { get; private set; }
+    public Guid? BrandId { get; private set; }
 
     public ProductStatus Status { get; private set; }
 
@@ -40,7 +40,7 @@ internal sealed class Product : Entity
         string slug,
         string? description,
         Guid? categoryId,
-        string? brand,
+        Guid? brandId,
         IReadOnlyList<VariantSpec> variantSpecs,
         DateTimeOffset now)
     {
@@ -74,7 +74,7 @@ internal sealed class Product : Entity
             Slug = slug,
             Description = description?.Trim() ?? string.Empty,
             CategoryId = categoryId,
-            Brand = NormalizeBrand(brand),
+            BrandId = brandId,
             Status = ProductStatus.Draft,
             CreatedAt = now,
         };
@@ -106,7 +106,7 @@ internal sealed class Product : Entity
     }
 
     /// <summary>Changes the shared content. The slug stays, so links already shared keep working.</summary>
-    public Result Edit(string name, string? description, Guid? categoryId, string? brand)
+    public Result Edit(string name, string? description, Guid? categoryId, Guid? brandId)
     {
         if (Status == ProductStatus.Archived)
         {
@@ -116,7 +116,7 @@ internal sealed class Product : Entity
         Name = name.Trim();
         Description = description?.Trim() ?? string.Empty;
         CategoryId = categoryId;
-        Brand = NormalizeBrand(brand);
+        BrandId = brandId;
         return Result.Success();
     }
 
@@ -219,6 +219,4 @@ internal sealed class Product : Entity
             ? Error.Validation("compareAtPrice", "A compare-at price must be higher than the price.")
             : null;
     }
-
-    private static string? NormalizeBrand(string? brand) => string.IsNullOrWhiteSpace(brand) ? null : brand.Trim();
 }

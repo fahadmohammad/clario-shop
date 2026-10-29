@@ -12,6 +12,9 @@ internal sealed class SlugAllocator(CatalogDbContext db)
     public Task<string> ForCategoryAsync(string name, CancellationToken cancellationToken) =>
         AllocateAsync(Slug.From(name, "category"), slug => db.Categories.AnyAsync(c => c.Slug == slug, cancellationToken));
 
+    public Task<string> ForBrandAsync(string name, CancellationToken cancellationToken) =>
+        AllocateAsync(Slug.From(name, "brand"), slug => db.Brands.AnyAsync(b => b.Slug == slug, cancellationToken));
+
     private static async Task<string> AllocateAsync(string baseSlug, Func<string, Task<bool>> isTaken)
     {
         var candidate = baseSlug;

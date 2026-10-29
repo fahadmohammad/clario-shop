@@ -5,7 +5,7 @@ namespace ClarioShop.Catalog.Features.Products;
 
 public static class ListProducts
 {
-    public sealed record Query(string? Search, string? Category, int Page = 1, int PageSize = 24);
+    public sealed record Query(string? Search, string? Category, string? Brand, int Page = 1, int PageSize = 24);
 
     public sealed record ProductCard(Guid Id, string Name, string Slug, string? Brand, decimal PriceFrom, decimal? CompareAtPrice);
 
@@ -18,6 +18,8 @@ public static class ListProducts
             RuleFor(query => query.Page).GreaterThanOrEqualTo(1);
             RuleFor(query => query.PageSize).InclusiveBetween(1, 100);
             RuleFor(query => query.Search).MaximumLength(100);
+            RuleFor(query => query.Category).MaximumLength(160);
+            RuleFor(query => query.Brand).MaximumLength(160);
         }
     }
 
@@ -29,13 +31,18 @@ public static class ListProducts
 
             if (!string.IsNullOrWhiteSpace(query.Search))
             {
-                var pattern = $"%{EscapeLike(query.Search.Trim())}%";
+                var pattern = LikePattern.Containing(query.Search.Trim());
                 products = products.Where(p => EF.Functions.ILike(p.Name, pattern, "\\"));
             }
 
             if (!string.IsNullOrWhiteSpace(query.Category))
             {
                 products = products.Where(p => db.Categories.Any(c => c.Id == p.CategoryId && c.Slug == query.Category));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.Brand))
+            {
+                products = products.Where(p => db.Brands.Any(b => b.Id == p.BrandId && b.Slug == query.Brand));
             }
 
             var total = await products.CountAsync(cancellationToken);
@@ -48,17 +55,12 @@ public static class ListProducts
                     p.Id,
                     p.Name,
                     p.Slug,
-                    p.Brand,
+                    db.Brands.Where(b => b.Id == p.BrandId).Select(b => b.Name).FirstOrDefault(),
                     p.Variants.Where(v => v.IsActive).Min(v => v.Price),
                     p.Variants.Where(v => v.IsActive).OrderBy(v => v.Price).Select(v => v.CompareAtPrice).FirstOrDefault()))
                 .ToListAsync(cancellationToken);
 
             return new Response(items, query.Page, query.PageSize, total);
         }
-
-        private static string EscapeLike(string value) =>
-            value.Replace("\\", "\\\\", StringComparison.Ordinal)
-                .Replace("%", "\\%", StringComparison.Ordinal)
-                .Replace("_", "\\_", StringComparison.Ordinal);
     }
 }

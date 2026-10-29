@@ -13,5 +13,9 @@ internal static class CatalogErrors
     public static readonly Error Concurrency = Error.Conflict(
         "catalog.concurrency", "Someone else changed this product at the same time. Reload it and try again.");
 
+    public static readonly Error BrandNotFound = Error.NotFound("catalog.brand_not_found", "The brand does not exist.");
+
+    public static Error BrandNameTaken(string name) => Error.Conflict("catalog.brand_name_taken", $"A brand named {name} already exists.");
+
     public static Error SkuTaken(string sku) => Error.Conflict("catalog.sku_taken", $"SKU {sku} is already used by another product.");
 }

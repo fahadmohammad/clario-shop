@@ -12,6 +12,8 @@ internal sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> option
 
     public DbSet<Category> Categories => Set<Category>();
 
+    public DbSet<Brand> Brands => Set<Brand>();
+
     public DbSet<Product> Products => Set<Product>();
 
     public DbSet<Variant> Variants => Set<Variant>();

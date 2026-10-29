@@ -3,10 +3,10 @@ using ClarioShop.Catalog.Persistence;
 
 namespace ClarioShop.Catalog.Features.Products;
 
-/// <summary>Replaces a product's shared content. The slug stays, so storefront links keep working.</summary>
+/// <summary>Replaces a product's shared content (name, description, category and brand). The slug stays, so storefront links keep working.</summary>
 public static class UpdateProduct
 {
-    public sealed record Request(string Name, string? Description, Guid? CategoryId, string? Brand);
+    public sealed record Request(string Name, string? Description, Guid? CategoryId, Guid? BrandId);
 
     public sealed record Command(Guid ProductId, Request Product);
 
@@ -16,7 +16,6 @@ public static class UpdateProduct
         {
             RuleFor(request => request.Name).NotEmpty().MaximumLength(200);
             RuleFor(request => request.Description).MaximumLength(10_000);
-            RuleFor(request => request.Brand).MaximumLength(100);
         }
     }
 
@@ -36,7 +35,12 @@ public static class UpdateProduct
                 return Error.Validation(nameof(Request.CategoryId), "The category does not exist.");
             }
 
-            var edited = product.Edit(request.Name, request.Description, request.CategoryId, request.Brand);
+            if (request.BrandId is { } brandId && !await db.Brands.AnyAsync(b => b.Id == brandId, cancellationToken))
+            {
+                return Error.Validation(nameof(Request.BrandId), "The brand does not exist.");
+            }
+
+            var edited = product.Edit(request.Name, request.Description, request.CategoryId, request.BrandId);
             if (edited.IsFailure)
             {
                 return edited.Error;
