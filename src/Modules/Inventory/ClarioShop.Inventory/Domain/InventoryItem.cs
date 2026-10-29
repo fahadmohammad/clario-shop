@@ -1,3 +1,5 @@
+using ClarioShop.SharedKernel.Results;
+
 namespace ClarioShop.Inventory.Domain;
 
 /// <summary>
@@ -22,6 +24,12 @@ internal sealed class InventoryItem
 
     public DateTimeOffset CreatedAt { get; private set; }
 
+    /// <summary>
+    /// Available stock at or below this, at any location, is low and due for reordering. Null uses the
+    /// store-wide default (Inventory:DefaultReorderLevel).
+    /// </summary>
+    public decimal? ReorderLevel { get; private set; }
+
     public static InventoryItem Create(Guid variantId, Guid productId, string sku, string productName, string variantName, DateTimeOffset now) => new()
     {
         VariantId = variantId,
@@ -31,4 +39,15 @@ internal sealed class InventoryItem
         VariantName = variantName,
         CreatedAt = now,
     };
+
+    public Result SetReorderLevel(decimal? level)
+    {
+        if (level is < 0)
+        {
+            return Error.Validation("reorderLevel", "The reorder level cannot be negative.");
+        }
+
+        ReorderLevel = level;
+        return Result.Success();
+    }
 }

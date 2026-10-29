@@ -11,7 +11,7 @@ using Npgsql;
 namespace ClarioShop.IntegrationTests.Features;
 
 [Collection(ApiCollection.Name)]
-public sealed class InventoryTests(ClarioApiFactory api)
+public sealed partial class InventoryTests(ClarioApiFactory api)
 {
     private static CancellationToken Cancel => TestContext.Current.CancellationToken;
 

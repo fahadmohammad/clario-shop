@@ -8,5 +8,6 @@ internal sealed class ReportingPermissionProvider : IPermissionProvider
     public IReadOnlyCollection<PermissionDefinition> GetPermissions() =>
     [
         new(ReportingPermissions.SalesView, "reports", "See sales by day, orders by status and the best-selling variants"),
+        new(ReportingPermissions.InventoryView, "reports", "See stock value at cost, low stock and negative stock"),
     ];
 }
