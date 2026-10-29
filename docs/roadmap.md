@@ -137,12 +137,16 @@ choice is configuration later, never a blocker now.
   - Edit and archive a product; add a variant (Inventory tracks it by consuming `VariantAdded`), rename it, replace its barcodes or take it off sale.
   - Price changes publish `ProductPriceChanged` and write a row to Catalog's own `AuditLog` (the 12c pattern: `AuditTrail` and `MapAuditLog` from Infrastructure), readable behind a `catalog.audit.view` permission.
 
-### 13b. brands-attributes
-- [ ] **Brands and attributes**
-  - `Brand` (replacing the free-text brand on products), attributes and values on variants; storefront filter by brand.
+### 13b. brands
+- [~] **Brands and the back-office product list**
+  - `Brand` (replacing the free-text brand on products; existing names migrate to brands), staff create and rename; storefront filter by brand.
   - Staff product list with drafts and archived products, for the back office.
 
-### 13c. product-images
+### 13c. attributes
+- [ ] **Variant attributes**
+  - Attributes and values (e.g. Size: S, M, L; Colour: Red, Blue), staff-managed; each variant picks at most one value per attribute; the storefront product page shows them so shoppers can choose.
+
+### 13d. product-images
 - [ ] **Product images**
   - `ProductImage` (upload via an `IFileStorage` abstraction for S3-compatible storage; local-disk implementation for dev/tests), ordering and a main image.
 
