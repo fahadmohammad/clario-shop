@@ -113,12 +113,22 @@ choice is configuration later, never a blocker now.
   - Inventory reports via an `IInventoryQueries` contract: stock value at cost, low and negative stock.
   - Permission `reports.inventory.view`.
 
-### 12. inventory-followups
-- [ ] **Inventory completeness**
+### 12a. stock-alerts
+- [~] **Stock drift check and negative-stock event**
   - Nightly drift check: recompute `StockLevel` from the ledger, record and alert on differences.
-  - Stock transfers between locations (`TransferOut`/`TransferIn`, one document).
   - Negative-stock alerts surfaced through an event Notifications can consume.
+
+### 12b. stock-transfers
+- [ ] **Stock transfers between locations**
+  - Stock transfers between locations (`TransferOut`/`TransferIn`, one document).
+
+### 12c. audit-log
+- [ ] **Audit log**
   - `AuditLog` (who, what, before/after, when) for adjustments, price changes and role changes — a small per-module table, not a shared one.
+
+### 12d. staff-alerts
+- [ ] **Stock alerts to staff**
+  - Notifications consumes `StockWentNegative` and `StockDriftDetected` and tells the store's contact (email and SMS from Settings) in the store's language.
 
 ### 13. catalog-completion
 - [ ] **Catalog for a real storefront**
