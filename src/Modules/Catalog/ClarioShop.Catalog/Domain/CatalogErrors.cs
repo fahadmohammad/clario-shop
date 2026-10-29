@@ -13,6 +13,8 @@ internal static class CatalogErrors
     public static readonly Error Concurrency = Error.Conflict(
         "catalog.concurrency", "Someone else changed this product at the same time. Reload it and try again.");
 
+    public static readonly Error ImageNotFound = Error.NotFound("catalog.image_not_found", "The product has no such image.");
+
     public static readonly Error BrandNotFound = Error.NotFound("catalog.brand_not_found", "The brand does not exist.");
 
     public static readonly Error AttributeNotFound = Error.NotFound("catalog.attribute_not_found", "The attribute does not exist.");

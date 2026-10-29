@@ -7,7 +7,7 @@ namespace ClarioShop.Catalog.Features.Products;
 internal static class ProductSaving
 {
     public static Task<Product?> LoadProductAsync(this CatalogDbContext db, Guid productId, CancellationToken cancellationToken) =>
-        db.Products.Include(p => p.Variants).SingleOrDefaultAsync(p => p.Id == productId, cancellationToken);
+        db.Products.Include(p => p.Variants).Include(p => p.Images).AsSplitQuery().SingleOrDefaultAsync(p => p.Id == productId, cancellationToken);
 
     /// <summary>
     /// Saves a change to a product or its variants. The product row is always written, so its RowVersion turns two

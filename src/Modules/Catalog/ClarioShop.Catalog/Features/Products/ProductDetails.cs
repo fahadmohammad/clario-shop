@@ -1,4 +1,5 @@
 using ClarioShop.Catalog.Domain;
+using ClarioShop.Catalog.Features.Images;
 
 namespace ClarioShop.Catalog.Features.Products;
 
@@ -14,7 +15,8 @@ public sealed record ProductDetails(
     DateTimeOffset CreatedAt,
     DateTimeOffset? PublishedAt,
     DateTimeOffset? ArchivedAt,
-    IReadOnlyList<VariantDetails> Variants)
+    IReadOnlyList<VariantDetails> Variants,
+    IReadOnlyList<ImageDetails> Images)
 {
     internal static ProductDetails From(Product product) => new(
         product.Id,
@@ -27,5 +29,6 @@ public sealed record ProductDetails(
         product.CreatedAt,
         product.PublishedAt,
         product.ArchivedAt,
-        product.Variants.OrderBy(v => v.Id).Select(VariantDetails.From).ToList());
+        product.Variants.OrderBy(v => v.Id).Select(VariantDetails.From).ToList(),
+        ImageDetails.ListOf(product));
 }

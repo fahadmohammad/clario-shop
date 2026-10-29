@@ -22,5 +22,8 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.HasMany(product => product.Variants).WithOne().HasForeignKey(variant => variant.ProductId).OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(product => product.Variants).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(product => product.Images).WithOne().HasForeignKey(image => image.ProductId).OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(product => product.Images).UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

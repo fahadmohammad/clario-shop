@@ -237,3 +237,6 @@ mcp/CWM.RoslynNavigator/binverify/zh-Hant/Microsoft.CodeAnalysis.CSharp.Workspac
 mcp/CWM.RoslynNavigator/binverify/zh-Hant/Microsoft.CodeAnalysis.resources.dll
 mcp/CWM.RoslynNavigator/binverify/zh-Hant/Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 mcp/CWM.RoslynNavigator/binverify/zh-Hant/Microsoft.CodeAnalysis.Workspaces.resources.dll
+
+## Local file storage (product images in development)
+App_Data/

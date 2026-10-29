@@ -210,6 +210,48 @@ namespace ClarioShop.Catalog.Persistence.Migrations
                     b.ToTable("Attributes", "catalog");
                 });
 
+            modelBuilder.Entity("ClarioShop.Catalog.Domain.ProductImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AltText")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StorageKey")
+                        .IsUnique();
+
+                    b.HasIndex("ProductId", "Position");
+
+                    b.ToTable("ProductImages", "catalog");
+                });
+
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Variant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -396,6 +438,15 @@ namespace ClarioShop.Catalog.Persistence.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 
+            modelBuilder.Entity("ClarioShop.Catalog.Domain.ProductImage", b =>
+                {
+                    b.HasOne("ClarioShop.Catalog.Domain.Product", null)
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Variant", b =>
                 {
                     b.HasOne("ClarioShop.Catalog.Domain.Product", null)
@@ -437,6 +488,8 @@ namespace ClarioShop.Catalog.Persistence.Migrations
 
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Product", b =>
                 {
+                    b.Navigation("Images");
+
                     b.Navigation("Variants");
                 });
 

@@ -31,8 +31,12 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
 
     private readonly PostgresServer postgres = new();
     private readonly string runId = Guid.NewGuid().ToString("N")[..8];
+    private readonly string filesRoot = Path.Combine(Path.GetTempPath(), $"clarioshop-files-{Guid.NewGuid():N}");
 
     public EventRecorder Events { get; } = new();
+
+    /// <summary>The folder the local-disk file storage writes to in this run.</summary>
+    public string FilesRoot => filesRoot;
 
     public RecordingSmsSender Sms { get; } = new();
 
@@ -147,6 +151,10 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         await base.DisposeAsync();
         await DropTestDatabasesAsync();
         await postgres.DisposeAsync();
+        if (Directory.Exists(filesRoot))
+        {
+            Directory.Delete(filesRoot, recursive: true);
+        }
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -165,6 +173,7 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         // A rotated refresh token is rejected at once, so the tests can see rotation without waiting.
         builder.UseSetting("Auth:RefreshTokenReuseLeeway", "00:00:00");
         builder.UseSetting("Messaging:OutboxPollInterval", "00:00:00.200");
+        builder.UseSetting("FileStorage:LocalRootPath", filesRoot);
         // Tests run the notification retry job themselves, at chosen times; the timer must not race them.
         builder.UseSetting("Notifications:RetryInterval", "01:00:00");
         // Tests run the drift check through its endpoint; a nightly run during CI must not correct their stock first.

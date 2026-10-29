@@ -1,4 +1,5 @@
 using ClarioShop.Catalog.Domain;
+using ClarioShop.Catalog.Features.Images;
 using ClarioShop.Catalog.Persistence;
 
 namespace ClarioShop.Catalog.Features.Products;
@@ -11,6 +12,7 @@ public static class ListAllProducts
     public sealed record Query(string? Search, string? Status, Guid? CategoryId, Guid? BrandId, int Page = 1, int PageSize = 50);
 
     /// <param name="PriceFrom">The lowest price of its active variants; null when none is active.</param>
+    /// <param name="ImageUrl">The main image; null when the product has none.</param>
     public sealed record ProductRow(
         Guid Id,
         string Name,
@@ -21,6 +23,7 @@ public static class ListAllProducts
         int VariantCount,
         int ActiveVariantCount,
         decimal? PriceFrom,
+        string? ImageUrl,
         DateTimeOffset CreatedAt,
         DateTimeOffset? PublishedAt,
         DateTimeOffset? ArchivedAt);
@@ -87,6 +90,7 @@ public static class ListAllProducts
                     VariantCount = p.Variants.Count,
                     ActiveVariantCount = p.Variants.Count(v => v.IsActive),
                     PriceFrom = p.Variants.Where(v => v.IsActive).Min(v => (decimal?)v.Price),
+                    MainImageId = p.Images.OrderBy(i => i.Position).ThenBy(i => i.Id).Select(i => (Guid?)i.Id).FirstOrDefault(),
                     p.CreatedAt,
                     p.PublishedAt,
                     p.ArchivedAt,
@@ -104,6 +108,7 @@ public static class ListAllProducts
                         p.VariantCount,
                         p.ActiveVariantCount,
                         p.PriceFrom,
+                        p.MainImageId is { } imageId ? ImageDetails.UrlFor(imageId) : null,
                         p.CreatedAt,
                         p.PublishedAt,
                         p.ArchivedAt))
