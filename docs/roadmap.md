@@ -119,7 +119,7 @@ choice is configuration later, never a blocker now.
   - Negative-stock alerts surfaced through an event Notifications can consume.
 
 ### 12b. stock-transfers
-- [ ] **Stock transfers between locations**
+- [~] **Stock transfers between locations**
   - Stock transfers between locations (`TransferOut`/`TransferIn`, one document).
 
 ### 12c. audit-log
