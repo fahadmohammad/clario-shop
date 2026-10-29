@@ -154,6 +154,38 @@ public sealed class StockLevelTests
         Assert.Equal((7m, 2m, 5m, Now.AddDays(1)), (level.OnHand, level.Reserved, level.Available, level.UpdatedAt));
     }
 
+    [Fact]
+    public void ApplyTransferOut_WithinAvailable_ReducesOnHand()
+    {
+        var level = WithStock(10);
+        level.Reserve(4, Now);
+
+        var result = level.ApplyTransferOut(Movement(MovementType.TransferOut, -6));
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal((4m, 4m, 0m), (level.OnHand, level.Reserved, level.Available));
+    }
+
+    [Fact]
+    public void ApplyTransferOut_ReservedStock_ReturnsConflictAndLeavesLevel()
+    {
+        var level = WithStock(10);
+        level.Reserve(4, Now);
+
+        var result = level.ApplyTransferOut(Movement(MovementType.TransferOut, -7));
+
+        Assert.Equal(ErrorType.Conflict, result.Error.Type);
+        Assert.Equal((10m, 6m), (level.OnHand, level.Available));
+    }
+
+    [Fact]
+    public void ApplyTransferOut_OtherMovementType_Throws()
+    {
+        var level = WithStock(10);
+
+        Assert.Throws<InvalidOperationException>(() => level.ApplyTransferOut(Movement(MovementType.PosSale, -1)));
+    }
+
     private static StockLevel WithStock(decimal onHand)
     {
         var level = StockLevel.Create(VariantId, LocationId, Now);

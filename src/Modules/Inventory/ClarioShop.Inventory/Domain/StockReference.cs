@@ -7,5 +7,7 @@ internal readonly record struct StockReference(string Type, Guid Id)
 
     public static StockReference Adjustment(Guid id) => new("StockAdjustment", id);
 
+    public static StockReference Transfer(Guid id) => new("StockTransfer", id);
+
     public static StockReference Order(Guid id) => new("Order", id);
 }

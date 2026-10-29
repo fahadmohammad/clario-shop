@@ -24,6 +24,8 @@ internal sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> op
 
     public DbSet<StockAdjustment> Adjustments => Set<StockAdjustment>();
 
+    public DbSet<StockTransfer> Transfers => Set<StockTransfer>();
+
     public DbSet<StockDrift> Drifts => Set<StockDrift>();
 
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)

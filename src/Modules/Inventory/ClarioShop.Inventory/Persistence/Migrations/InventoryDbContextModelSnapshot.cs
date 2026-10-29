@@ -416,6 +416,42 @@ namespace ClarioShop.Inventory.Persistence.Migrations
                     b.ToTable("StockReservations", "inventory");
                 });
 
+            modelBuilder.Entity("ClarioShop.Inventory.Domain.StockTransfer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FromLocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RecordedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ToLocationId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FromLocationId");
+
+                    b.HasIndex("RecordedAt");
+
+                    b.HasIndex("ToLocationId");
+
+                    b.ToTable("StockTransfers", "inventory", t =>
+                        {
+                            t.HasCheckConstraint("CK_StockTransfers_DifferentLocations", "\"FromLocationId\" <> \"ToLocationId\"");
+                        });
+                });
+
             modelBuilder.Entity("ClarioShop.Inventory.Domain.PurchaseReceipt", b =>
                 {
                     b.HasOne("ClarioShop.Inventory.Domain.Location", null)
@@ -555,6 +591,54 @@ namespace ClarioShop.Inventory.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("ReservationId");
+                        });
+
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("ClarioShop.Inventory.Domain.StockTransfer", b =>
+                {
+                    b.HasOne("ClarioShop.Inventory.Domain.Location", null)
+                        .WithMany()
+                        .HasForeignKey("FromLocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ClarioShop.Inventory.Domain.Location", null)
+                        .WithMany()
+                        .HasForeignKey("ToLocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsMany("ClarioShop.Inventory.Domain.StockTransferLine", "Lines", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uuid");
+
+                            b1.Property<decimal>("Quantity")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("numeric(18,3)");
+
+                            b1.Property<Guid>("TransferId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<Guid>("VariantId")
+                                .HasColumnType("uuid");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("TransferId");
+
+                            b1.HasIndex("VariantId");
+
+                            b1.ToTable("StockTransferLines", "inventory", t =>
+                                {
+                                    t.HasCheckConstraint("CK_StockTransferLines_Quantity", "\"Quantity\" > 0");
+                                });
+
+                            b1.WithOwner()
+                                .HasForeignKey("TransferId");
                         });
 
                     b.Navigation("Lines");
