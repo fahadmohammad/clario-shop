@@ -2,6 +2,7 @@ using ClarioShop.Identity.Contracts;
 using ClarioShop.Identity.Domain;
 using ClarioShop.Identity.Persistence;
 using ClarioShop.Identity.Services;
+using ClarioShop.Infrastructure.Auditing;
 using ClarioShop.Infrastructure.Handlers;
 using ClarioShop.Infrastructure.Persistence;
 using ClarioShop.Infrastructure.Tenancy;
@@ -24,6 +25,7 @@ public static class IdentityModule
         services.AddEndpointGroups(typeof(IdentityModule).Assembly);
         services.AddTokenServer(configuration, environment);
 
+        services.AddAuditTrail();
         services.AddSingleton<IPermissionProvider, IdentityPermissionProvider>();
         services.AddSingleton<PermissionCatalog>();
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();

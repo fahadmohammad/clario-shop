@@ -10,5 +10,6 @@ internal sealed class IdentityPermissionProvider : IPermissionProvider
         new(IdentityPermissions.UsersView, "identity", "View staff accounts"),
         new(IdentityPermissions.UsersManage, "identity", "Create and change staff accounts"),
         new(IdentityPermissions.RolesView, "identity", "View roles and their permissions"),
+        new(IdentityPermissions.AuditView, "audit", "View the audit log of staff accounts and role changes"),
     ];
 }

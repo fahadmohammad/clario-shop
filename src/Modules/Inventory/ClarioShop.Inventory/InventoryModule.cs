@@ -1,4 +1,5 @@
 using ClarioShop.Catalog.Contracts.Events;
+using ClarioShop.Infrastructure.Auditing;
 using ClarioShop.Infrastructure.Handlers;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Persistence;
@@ -23,6 +24,7 @@ public static class InventoryModule
         services.AddModuleHandlers(typeof(InventoryModule).Assembly);
         services.AddEndpointGroups(typeof(InventoryModule).Assembly);
 
+        services.AddAuditTrail();
         services.AddSingleton<IPermissionProvider, InventoryPermissionProvider>();
         services.AddScoped<LocationResolver>();
         services.AddScoped<ItemRegistry>();

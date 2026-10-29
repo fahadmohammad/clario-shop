@@ -123,8 +123,9 @@ choice is configuration later, never a blocker now.
   - Stock transfers between locations (`TransferOut`/`TransferIn`, one document).
 
 ### 12c. audit-log
-- [~] **Audit log**
+- [x] **Audit log** — #24
   - `AuditLog` (who, what, before/after, when) for adjustments, price changes and role changes — a small per-module table, not a shared one.
+  - Done here: Inventory audits stock adjustments; Identity audits staff accounts created and role changes (new endpoint to change a user's roles). Catalog has no price change yet, so auditing it moves to step 13.
 
 ### 12d. staff-alerts
 - [ ] **Stock alerts to staff**
@@ -133,6 +134,7 @@ choice is configuration later, never a blocker now.
 ### 13. catalog-completion
 - [ ] **Catalog for a real storefront**
   - `Brand`, `ProductImage` (upload via an `IFileStorage` abstraction for S3-compatible storage; local-disk implementation for dev/tests), attributes and values, edit/archive product and variant, price changes publishing `ProductPriceChanged`.
+  - Price changes write a row to Catalog's own `AuditLog` (the 12c pattern: `AuditTrail` and `MapAuditLog` from Infrastructure), readable behind a `catalog.audit.view` permission.
   - Inventory tracks variants added after creation (consume a `VariantAdded` event).
 
 ### 14. plans-and-scopes

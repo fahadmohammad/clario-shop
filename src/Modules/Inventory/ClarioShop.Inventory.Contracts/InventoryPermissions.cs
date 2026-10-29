@@ -7,4 +7,5 @@ public static class InventoryPermissions
     public const string Adjust = "inventory.adjust";
     public const string Transfer = "inventory.transfer";
     public const string LocationsEdit = "inventory.locations.edit";
+    public const string AuditView = "inventory.audit.view";
 }
