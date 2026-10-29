@@ -12,7 +12,7 @@ public static class GetProduct
     {
         public async Task<Result<ProductDetails>> HandleAsync(Query query, CancellationToken cancellationToken)
         {
-            var product = await db.Products.AsNoTracking().Include(p => p.Variants)
+            var product = await db.Products.AsNoTracking().Include(p => p.Variants).Include(p => p.Images).AsSplitQuery()
                 .SingleOrDefaultAsync(p => p.Id == query.ProductId, cancellationToken);
             return product is null ? CatalogErrors.ProductNotFound : ProductDetails.From(product);
         }

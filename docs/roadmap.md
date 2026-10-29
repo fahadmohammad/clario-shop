@@ -147,7 +147,7 @@ choice is configuration later, never a blocker now.
   - Attributes and values (e.g. Size: S, M, L; Colour: Red, Blue), staff-managed; each variant picks at most one value per attribute; the storefront product page shows them so shoppers can choose.
 
 ### 13d. product-images
-- [ ] **Product images**
+- [x] **Product images** — #29
   - `ProductImage` (upload via an `IFileStorage` abstraction for S3-compatible storage; local-disk implementation for dev/tests), ordering and a main image.
 
 ### 14. plans-and-scopes

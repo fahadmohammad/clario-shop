@@ -1,4 +1,5 @@
 using ClarioShop.Catalog.Domain;
+using ClarioShop.Catalog.Features.Images;
 using ClarioShop.Catalog.Persistence;
 
 namespace ClarioShop.Catalog.Features.Products;
@@ -11,6 +12,7 @@ public static class GetProductBySlug
     /// The attributes the product's variants differ by, each with the values its sellable variants have, in the
     /// order staff set; the shopper picks one value per option to land on a variant.
     /// </param>
+    /// <param name="Images">The gallery in order; the first is the main image.</param>
     public sealed record Response(
         Guid Id,
         string Name,
@@ -19,11 +21,14 @@ public static class GetProductBySlug
         BrandRef? Brand,
         CategoryRef? Category,
         IReadOnlyList<OptionItem> Options,
-        IReadOnlyList<VariantItem> Variants);
+        IReadOnlyList<VariantItem> Variants,
+        IReadOnlyList<ImageItem> Images);
 
     public sealed record BrandRef(string Name, string Slug);
 
     public sealed record CategoryRef(string Name, string Slug);
+
+    public sealed record ImageItem(string Url, string AltText);
 
     public sealed record OptionItem(string Name, IReadOnlyList<string> Values);
 
@@ -65,6 +70,7 @@ public static class GetProductBySlug
                             ValueIds = v.AttributeValues.Select(a => a.AttributeValueId).ToList(),
                         })
                         .ToList(),
+                    Images = p.Images.OrderBy(i => i.Position).ThenBy(i => i.Id).Select(i => new { i.Id, i.AltText }).ToList(),
                 })
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -103,7 +109,9 @@ public static class GetProductBySlug
                         .ToList()))
                 .ToList();
 
-            return new Response(product.Id, product.Name, product.Slug, product.Description, product.Brand, product.Category, options, variants);
+            var images = product.Images.Select(i => new ImageItem(ImageDetails.UrlFor(i.Id), i.AltText)).ToList();
+            return new Response(
+                product.Id, product.Name, product.Slug, product.Description, product.Brand, product.Category, options, variants, images);
         }
     }
 }

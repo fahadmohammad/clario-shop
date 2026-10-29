@@ -5,6 +5,9 @@ namespace ClarioShop.Catalog.Domain;
 
 internal sealed class Product : Entity
 {
+    /// <summary>Enough for a gallery; keeps a product page light on mobile data.</summary>
+    public const int MaxImages = 10;
+
     private static readonly Error OneValuePerAttributeError =
         Error.Validation("attributeValueIds", "A variant can have only one value per attribute.");
 
@@ -12,6 +15,8 @@ internal sealed class Product : Entity
         Error.Validation("attributeValueIds", "Another variant of this product already has the same attribute values.");
 
     private readonly List<Variant> variants = [];
+
+    private readonly List<ProductImage> images = [];
 
     private Product()
     {
@@ -40,6 +45,8 @@ internal sealed class Product : Entity
     public uint RowVersion { get; private set; }
 
     public IReadOnlyCollection<Variant> Variants => variants;
+
+    public IReadOnlyCollection<ProductImage> Images => images;
 
     public static Result<Product> Create(
         string name,
@@ -243,6 +250,92 @@ internal sealed class Product : Entity
         var change = new PriceChange(variant, variant.Price, variant.CompareAtPrice);
         variant.SetPrice(price, compareAtPrice);
         return change;
+    }
+
+    /// <summary>The gallery in order; the first image is the main one.</summary>
+    public IReadOnlyList<ProductImage> OrderedImages() =>
+        [.. images.OrderBy(image => image.Position).ThenBy(image => image.Id)];
+
+    /// <summary>Adds an image at the end of the gallery; the first image a product gets becomes its main image.</summary>
+    public Result<ProductImage> AddImage(Guid imageId, ImageSpec spec, DateTimeOffset now)
+    {
+        if (Status == ProductStatus.Archived)
+        {
+            return CatalogErrors.Archived;
+        }
+
+        if (images.Count >= MaxImages)
+        {
+            return Error.Validation("file", $"A product can have at most {MaxImages} images. Remove one first.");
+        }
+
+        var position = images.Count == 0 ? 0 : images.Max(image => image.Position) + 1;
+        var image = ProductImage.Create(imageId, Id, spec, position, now);
+        images.Add(image);
+        return image;
+    }
+
+    /// <summary>Removes an image; the next one becomes the main image when it was the main one.</summary>
+    public Result<ProductImage> RemoveImage(Guid imageId)
+    {
+        var image = FindImage(imageId);
+        if (image.IsFailure)
+        {
+            return image.Error;
+        }
+
+        images.Remove(image.Value);
+        Renumber(OrderedImages());
+        return image.Value;
+    }
+
+    /// <summary>Puts the gallery in the given order, which must name every image of the product once.</summary>
+    public Result ReorderImages(IReadOnlyList<Guid> imageIds)
+    {
+        if (Status == ProductStatus.Archived)
+        {
+            return CatalogErrors.Archived;
+        }
+
+        if (imageIds.Count != images.Count || imageIds.Distinct().Count() != imageIds.Count || images.Any(image => !imageIds.Contains(image.Id)))
+        {
+            return Error.Validation("imageIds", "List every image of the product exactly once.");
+        }
+
+        Renumber([.. imageIds.Select(id => images.Single(image => image.Id == id))]);
+        return Result.Success();
+    }
+
+    /// <summary>Moves an image to the front of the gallery; the others keep their order behind it.</summary>
+    public Result SetMainImage(Guid imageId)
+    {
+        var image = FindImage(imageId);
+        if (image.IsFailure)
+        {
+            return image.Error;
+        }
+
+        Renumber([image.Value, .. OrderedImages().Where(other => other != image.Value)]);
+        return Result.Success();
+    }
+
+    private Result<ProductImage> FindImage(Guid imageId)
+    {
+        if (Status == ProductStatus.Archived)
+        {
+            return CatalogErrors.Archived;
+        }
+
+        var image = images.FirstOrDefault(i => i.Id == imageId);
+        return image is null ? CatalogErrors.ImageNotFound : image;
+    }
+
+    private static void Renumber(IReadOnlyList<ProductImage> ordered)
+    {
+        for (var position = 0; position < ordered.Count; position++)
+        {
+            ordered[position].MoveTo(position);
+        }
     }
 
     private static bool OneValuePerAttribute(IReadOnlyList<AttributeValueRef> values) =>

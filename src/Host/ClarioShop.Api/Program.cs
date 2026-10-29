@@ -7,6 +7,7 @@ using ClarioShop.Infrastructure.Endpoints;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Security;
 using ClarioShop.Infrastructure.Sms;
+using ClarioShop.Infrastructure.Storage;
 using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Inventory;
 using ClarioShop.Notifications;
@@ -42,6 +43,7 @@ builder.Services.AddClarioMessaging(builder.Configuration, useRabbitMq);
 builder.Services.AddPermissionAuthorization();
 builder.Services.AddClarioSms();
 builder.Services.AddClarioEmail();
+builder.Services.AddClarioFileStorage(builder.Configuration);
 builder.Services.AddClarioRateLimiting(builder.Configuration);
 builder.Services.AddClarioCors(builder.Configuration);
 
