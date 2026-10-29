@@ -14,6 +14,10 @@ internal sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> option
 
     public DbSet<Brand> Brands => Set<Brand>();
 
+    public DbSet<ProductAttribute> Attributes => Set<ProductAttribute>();
+
+    public DbSet<AttributeValue> AttributeValues => Set<AttributeValue>();
+
     public DbSet<Product> Products => Set<Product>();
 
     public DbSet<Variant> Variants => Set<Variant>();

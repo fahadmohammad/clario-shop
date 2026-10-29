@@ -143,7 +143,7 @@ choice is configuration later, never a blocker now.
   - Staff product list with drafts and archived products, for the back office.
 
 ### 13c. attributes
-- [ ] **Variant attributes**
+- [x] **Variant attributes** — #28
   - Attributes and values (e.g. Size: S, M, L; Colour: Red, Blue), staff-managed; each variant picks at most one value per attribute; the storefront product page shows them so shoppers can choose.
 
 ### 13d. product-images

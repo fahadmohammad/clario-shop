@@ -25,7 +25,13 @@ public static class AddVariant
                 return CatalogErrors.SkuTaken(sku);
             }
 
-            var added = product.AddVariant(command.Variant.ToSpec());
+            var attributeValues = await AttributeValueLookup.LoadAsync(db, command.Variant.AttributeValueIds ?? [], cancellationToken);
+            if (attributeValues.IsFailure)
+            {
+                return attributeValues.Error;
+            }
+
+            var added = product.AddVariant(command.Variant.ToSpec(attributeValues.Value));
             if (added.IsFailure)
             {
                 return added.Error;

@@ -85,7 +85,7 @@ internal sealed class ProductEndpoints : IEndpointGroup
                 Guid id, Guid variantId, UpdateVariant.Request variant, UpdateVariant.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(new UpdateVariant.Command(id, variantId, variant), cancellationToken)).ToHttpResult())
             .WithName("UpdateVariant")
-            .WithSummary("Rename a variant, replace its barcodes, or take it off sale. SKU and sold-by-weight never change.")
+            .WithSummary("Rename a variant, replace its barcodes and attribute values, or take it off sale. SKU and sold-by-weight never change.")
             .WithValidation<UpdateVariant.Request>()
             .Produces<VariantDetails>()
             .ProducesProblem(StatusCodes.Status404NotFound)

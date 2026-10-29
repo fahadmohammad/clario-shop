@@ -5,6 +5,12 @@ namespace ClarioShop.Catalog.Domain;
 
 internal sealed class Product : Entity
 {
+    private static readonly Error OneValuePerAttributeError =
+        Error.Validation("attributeValueIds", "A variant can have only one value per attribute.");
+
+    private static readonly Error SameValuesError =
+        Error.Validation("attributeValueIds", "Another variant of this product already has the same attribute values.");
+
     private readonly List<Variant> variants = [];
 
     private Product()
@@ -65,6 +71,21 @@ internal sealed class Product : Entity
         if (duplicateSku is not null)
         {
             return Error.Validation("variants", $"SKU {duplicateSku.Key} is used twice.");
+        }
+
+        if (variantSpecs.Any(spec => !OneValuePerAttribute(spec.AttributeValues ?? [])))
+        {
+            return OneValuePerAttributeError;
+        }
+
+        var sameValues = variantSpecs
+            .Select(spec => Variant.CombinationKey((spec.AttributeValues ?? []).Select(value => value.ValueId)))
+            .Where(key => key.Length > 0)
+            .GroupBy(key => key)
+            .Any(group => group.Count() > 1);
+        if (sameValues)
+        {
+            return SameValuesError;
         }
 
         var product = new Product
@@ -155,13 +176,23 @@ internal sealed class Product : Entity
             return CatalogErrors.SkuTaken(sku);
         }
 
+        var attributeError = ValidateAttributeValues(spec.AttributeValues ?? [], exceptVariantId: null);
+        if (attributeError is not null)
+        {
+            return attributeError;
+        }
+
         var added = Variant.Create(Id, spec);
         variants.Add(added);
         return added;
     }
 
-    /// <summary>Renames a variant, replaces its barcodes, or takes it off sale. Its SKU and unit never change.</summary>
-    public Result<Variant> UpdateVariant(Guid variantId, string? name, IReadOnlyList<string>? barcodes, bool isActive)
+    /// <summary>
+    /// Renames a variant, replaces its barcodes and attribute values, or takes it off sale. Its SKU and unit never
+    /// change.
+    /// </summary>
+    public Result<Variant> UpdateVariant(
+        Guid variantId, string? name, IReadOnlyList<string>? barcodes, bool isActive, IReadOnlyList<AttributeValueRef> attributeValues)
     {
         if (Status == ProductStatus.Archived)
         {
@@ -180,7 +211,13 @@ internal sealed class Product : Entity
                 "isActive", "A published product needs an active variant. Archive the product to take it off the storefront.");
         }
 
-        variant.Update(name, barcodes, isActive);
+        var attributeError = ValidateAttributeValues(attributeValues, variantId);
+        if (attributeError is not null)
+        {
+            return attributeError;
+        }
+
+        variant.Update(name, barcodes, isActive, attributeValues);
         return variant;
     }
 
@@ -206,6 +243,26 @@ internal sealed class Product : Entity
         var change = new PriceChange(variant, variant.Price, variant.CompareAtPrice);
         variant.SetPrice(price, compareAtPrice);
         return change;
+    }
+
+    private static bool OneValuePerAttribute(IReadOnlyList<AttributeValueRef> values) =>
+        values.Select(value => value.AttributeId).Distinct().Count() == values.Count;
+
+    /// <summary>
+    /// A shopper picks a variant by its values, so each variant has at most one value per attribute and no two
+    /// variants of the product share the same values.
+    /// </summary>
+    private Error? ValidateAttributeValues(IReadOnlyList<AttributeValueRef> values, Guid? exceptVariantId)
+    {
+        if (!OneValuePerAttribute(values))
+        {
+            return OneValuePerAttributeError;
+        }
+
+        var key = Variant.CombinationKey(values.Select(value => value.ValueId));
+        return key.Length > 0 && variants.Any(variant => variant.Id != exceptVariantId && variant.CombinationKey() == key)
+            ? SameValuesError
+            : null;
     }
 
     private static Error? ValidatePrice(decimal price, decimal? compareAtPrice)

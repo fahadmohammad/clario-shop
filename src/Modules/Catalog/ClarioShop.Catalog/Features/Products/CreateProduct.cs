@@ -48,6 +48,13 @@ public static class CreateProduct
                 return CatalogErrors.SkuTaken(takenSku);
             }
 
+            var attributeValues = await AttributeValueLookup.LoadAsync(
+                db, command.Variants.SelectMany(v => v.AttributeValueIds ?? []), cancellationToken);
+            if (attributeValues.IsFailure)
+            {
+                return attributeValues.Error;
+            }
+
             var now = clock.GetUtcNow();
             var slug = await slugs.ForProductAsync(command.Name, cancellationToken);
             var created = Product.Create(
@@ -56,7 +63,7 @@ public static class CreateProduct
                 command.Description,
                 command.CategoryId,
                 command.BrandId,
-                command.Variants.Select(v => v.ToSpec()).ToList(),
+                command.Variants.Select(v => v.ToSpec(attributeValues.Value)).ToList(),
                 now);
             if (created.IsFailure)
             {

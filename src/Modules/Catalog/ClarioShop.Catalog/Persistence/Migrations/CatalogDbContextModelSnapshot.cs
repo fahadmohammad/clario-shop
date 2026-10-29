@@ -24,6 +24,35 @@ namespace ClarioShop.Catalog.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ClarioShop.Catalog.Domain.AttributeValue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttributeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NormalizedValue")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttributeId", "NormalizedValue")
+                        .IsUnique();
+
+                    b.ToTable("AttributeValues", "catalog");
+                });
+
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Brand", b =>
                 {
                     b.Property<Guid>("Id")
@@ -152,6 +181,33 @@ namespace ClarioShop.Catalog.Persistence.Migrations
                     b.HasIndex("Status", "CategoryId");
 
                     b.ToTable("Products", "catalog");
+                });
+
+            modelBuilder.Entity("ClarioShop.Catalog.Domain.ProductAttribute", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
+
+                    b.ToTable("Attributes", "catalog");
                 });
 
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Variant", b =>
@@ -310,6 +366,15 @@ namespace ClarioShop.Catalog.Persistence.Migrations
                     b.ToTable("OutboxMessages", "catalog");
                 });
 
+            modelBuilder.Entity("ClarioShop.Catalog.Domain.AttributeValue", b =>
+                {
+                    b.HasOne("ClarioShop.Catalog.Domain.ProductAttribute", null)
+                        .WithMany("Values")
+                        .HasForeignKey("AttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Category", b =>
                 {
                     b.HasOne("ClarioShop.Catalog.Domain.Category", null)
@@ -338,11 +403,46 @@ namespace ClarioShop.Catalog.Persistence.Migrations
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.OwnsMany("ClarioShop.Catalog.Domain.VariantAttributeValue", "AttributeValues", b1 =>
+                        {
+                            b1.Property<Guid>("VariantId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<Guid>("AttributeId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<Guid>("AttributeValueId")
+                                .HasColumnType("uuid");
+
+                            b1.HasKey("VariantId", "AttributeId");
+
+                            b1.HasIndex("AttributeValueId", "AttributeId");
+
+                            b1.ToTable("VariantAttributeValues", "catalog");
+
+                            b1.WithOwner()
+                                .HasForeignKey("VariantId");
+
+                            b1.HasOne("ClarioShop.Catalog.Domain.AttributeValue", null)
+                                .WithMany()
+                                .HasForeignKey("AttributeValueId", "AttributeId")
+                                .HasPrincipalKey("Id", "AttributeId")
+                                .OnDelete(DeleteBehavior.Restrict)
+                                .IsRequired();
+                        });
+
+                    b.Navigation("AttributeValues");
                 });
 
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Product", b =>
                 {
                     b.Navigation("Variants");
+                });
+
+            modelBuilder.Entity("ClarioShop.Catalog.Domain.ProductAttribute", b =>
+                {
+                    b.Navigation("Values");
                 });
 #pragma warning restore 612, 618
         }

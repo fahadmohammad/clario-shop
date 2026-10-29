@@ -10,7 +10,8 @@ public sealed record VariantDetails(
     decimal? CompareAtPrice,
     IReadOnlyList<string> Barcodes,
     bool SoldByWeight,
-    bool IsActive)
+    bool IsActive,
+    IReadOnlyList<Guid> AttributeValueIds)
 {
     internal static VariantDetails From(Variant variant) => new(
         variant.Id,
@@ -20,5 +21,6 @@ public sealed record VariantDetails(
         variant.CompareAtPrice,
         variant.Barcodes,
         variant.SoldByWeight,
-        variant.IsActive);
+        variant.IsActive,
+        variant.AttributeValues.Select(value => value.AttributeValueId).ToList());
 }
