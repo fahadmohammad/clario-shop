@@ -47,11 +47,11 @@ internal sealed class TenantProvisioner(
             Database = $"clarioshop_{identifier.Replace('-', '_')}",
         }.ConnectionString;
 
-        var tenant = Tenant.Create(identifier, request.Name, connectionString, hosts, clock.GetUtcNow());
+        var tenant = Tenant.Create(identifier, request.Name, connectionString, hosts, request.Plan, clock.GetUtcNow());
         db.Tenants.Add(tenant);
         await db.SaveChangesAsync(cancellationToken);
 
-        var info = new TenantInfo(tenant.Id, tenant.Identifier, tenant.Name, tenant.ConnectionString, IsActive: true);
+        var info = TenantStore.ToInfo(tenant.Id, tenant.Identifier, tenant.Name, tenant.ConnectionString, isActive: true, tenant.Plan);
         await migrator.MigrateAsync(info, cancellationToken);
 
         await using (var scope = tenantScopes.CreateScope(info))
@@ -77,4 +77,5 @@ internal sealed record TenantRequest(
     IReadOnlyList<string> Hosts,
     string OwnerEmail,
     string OwnerName,
-    string OwnerPassword);
+    string OwnerPassword,
+    TenantPlan Plan);

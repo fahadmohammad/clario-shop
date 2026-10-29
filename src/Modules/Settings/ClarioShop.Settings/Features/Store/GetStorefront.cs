@@ -1,10 +1,12 @@
 using ClarioShop.Settings.Contracts;
+using ClarioShop.SharedKernel.Tenancy;
 
 namespace ClarioShop.Settings.Features.Store;
 
 /// <summary>
 /// What the storefront and apps need before rendering: store name and contacts, theme tokens, currency format,
-/// languages and the delivery zones shoppers can pick. Public and cached; holds nothing private.
+/// languages, the delivery zones shoppers can pick and the features the shop's plan includes (so the apps hide the
+/// rest). Public and cached; holds nothing private.
 /// </summary>
 public static class GetStorefront
 {
@@ -18,9 +20,10 @@ public static class GetStorefront
         CurrencyFormatInfo Currency,
         string DefaultLanguage,
         IReadOnlyList<string> Languages,
-        IReadOnlyList<DeliveryZoneInfo> DeliveryZones);
+        IReadOnlyList<DeliveryZoneInfo> DeliveryZones,
+        IReadOnlyList<PlanFeatures> Features);
 
-    internal sealed class Handler(ISettingsQueries settings) : ICommandHandler<Query, Response>
+    internal sealed class Handler(ISettingsQueries settings, ITenantContext tenant) : ICommandHandler<Query, Response>
     {
         public async Task<Result<Response>> HandleAsync(Query query, CancellationToken cancellationToken)
         {
@@ -34,7 +37,8 @@ public static class GetStorefront
                 store.Currency,
                 store.DefaultLanguage,
                 store.Languages,
-                zones);
+                zones,
+                [.. Enum.GetValues<PlanFeatures>().Where(feature => feature != PlanFeatures.None && tenant.Features.HasFlag(feature))]);
         }
     }
 }

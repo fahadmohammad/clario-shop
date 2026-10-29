@@ -73,6 +73,7 @@ public static class CreateProduct
 - Module DbContexts get the **tenant's connection string** from `ITenantContext` — never from static configuration.
 - Every request outside `/platform/*`, `/health*` and `/openapi*` **must** resolve a tenant, or it fails with 404.
 - Migrations are applied per tenant by `TenantMigrator` (on startup in Development, by a deploy step in production).
+- Each tenant has a **plan** (Online, Pos, RetailSuite) that turns `PlanFeatures` on (`OnlineStore`, `Pos`, `MultipleLocations`). Endpoints that need one declare it with `.RequirePlanFeature(PlanFeatures.OnlineStore)`; `PlanGateMiddleware` (after authorization) answers 403 `plan_feature_unavailable` when the plan lacks it. New Pos endpoints need `PlanFeatures.Pos`.
 
 ## Auth and RBAC
 

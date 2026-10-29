@@ -1,4 +1,5 @@
 using ClarioShop.Infrastructure.Tenancy;
+using ClarioShop.Platform.Domain;
 using ClarioShop.Platform.Persistence;
 using ClarioShop.Platform.Services;
 using Microsoft.Extensions.Logging;
@@ -57,7 +58,7 @@ public static partial class PlatformStartup
         }
 
         var result = await provider.GetRequiredService<TenantProvisioner>().ProvisionAsync(
-            new TenantRequest(demo.Identifier, demo.Name, demo.Hosts, demo.OwnerEmail, "Demo Owner", demo.OwnerPassword),
+            new TenantRequest(demo.Identifier, demo.Name, demo.Hosts, demo.OwnerEmail, "Demo Owner", demo.OwnerPassword, TenantPlan.RetailSuite),
             cancellationToken);
 
         if (result.IsSuccess)

@@ -6,7 +6,7 @@ public static class ListTenants
 {
     public sealed record Query;
 
-    public sealed record TenantItem(Guid Id, string Identifier, string Name, bool IsActive, DateTimeOffset CreatedAt, IReadOnlyList<string> Hosts);
+    public sealed record TenantItem(Guid Id, string Identifier, string Name, bool IsActive, TenantPlan Plan, DateTimeOffset CreatedAt, IReadOnlyList<string> Hosts);
 
     internal sealed class Handler(PlatformDbContext db) : ICommandHandler<Query, IReadOnlyList<TenantItem>>
     {
@@ -19,6 +19,7 @@ public static class ListTenants
                     tenant.Identifier,
                     tenant.Name,
                     tenant.IsActive,
+                    tenant.Plan,
                     tenant.CreatedAt,
                     tenant.Hosts.OrderBy(host => host.Host).Select(host => host.Host).ToList()))
                 .ToListAsync(cancellationToken);

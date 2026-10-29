@@ -11,7 +11,7 @@ internal sealed class StoreSettingsEndpoints : IEndpointGroup
         group.MapGet("/storefront", static async (GetStorefront.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(new GetStorefront.Query(), cancellationToken)).ToHttpResult())
             .WithName("GetStorefrontSettings")
-            .WithSummary("Public store name, contacts, theme tokens, currency format, languages and active delivery zones.")
+            .WithSummary("Public store name, contacts, theme tokens, currency format, languages, active delivery zones and the features the shop's plan includes.")
             .Produces<GetStorefront.Response>()
             .AllowAnonymous();
 

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.SharedKernel.Tenancy;
 
 namespace ClarioShop.Ordering.Features.Orders;
@@ -8,7 +9,7 @@ internal sealed class MyOrderEndpoints : IEndpointGroup
 {
     public void Map(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/ordering/me/orders").WithTags("My account").RequireShopper();
+        var group = app.MapGroup("/api/ordering/me/orders").WithTags("My account").RequireShopper().RequirePlanFeature(PlanFeatures.OnlineStore);
 
         group.MapGet("/", static async ([AsParameters] ListMyOrders.Request request, ClaimsPrincipal user, ITenantContext tenant, ListMyOrders.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(new ListMyOrders.Query(Me(user, tenant), request.Page, request.PageSize), cancellationToken)).ToHttpResult())

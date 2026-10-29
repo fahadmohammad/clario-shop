@@ -69,8 +69,11 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         return client;
     }
 
-    /// <summary>Provisions a fresh tenant with a unique identifier and returns its owner's credentials.</summary>
-    public async Task<TestTenant> CreateTenantAsync(string prefix)
+    /// <summary>
+    /// Provisions a fresh tenant with a unique identifier and returns its owner's credentials. Without a
+    /// <paramref name="plan"/> (Online, Pos, RetailSuite) the shop gets the platform's default, RetailSuite.
+    /// </summary>
+    public async Task<TestTenant> CreateTenantAsync(string prefix, string? plan = null)
     {
         var identifier = $"{prefix}-{runId}-{Guid.NewGuid().ToString("N")[..6]}";
         var tenant = new TestTenant(identifier, $"owner@{identifier}.test", "Owner-pass-123");
@@ -84,6 +87,7 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
             ownerEmail = tenant.OwnerEmail,
             ownerName = "Test Owner",
             ownerPassword = tenant.OwnerPassword,
+            plan,
         });
         await response.EnsureSuccessWithBodyAsync();
         return tenant;

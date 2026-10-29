@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Inventory.Contracts;
 using ClarioShop.Inventory.Services;
+using ClarioShop.SharedKernel.Tenancy;
 
 namespace ClarioShop.Inventory.Features.Transfers;
 
@@ -8,7 +10,7 @@ internal sealed class TransferEndpoints : IEndpointGroup
 {
     public void Map(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/inventory/transfers").WithTags("Inventory");
+        var group = app.MapGroup("/api/inventory/transfers").WithTags("Inventory").RequirePlanFeature(PlanFeatures.MultipleLocations);
 
         group.MapPost("/", static async (RecordStockTransfer.Command command, ClaimsPrincipal user, RecordStockTransfer.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(command with { UserId = user.UserId() }, cancellationToken))

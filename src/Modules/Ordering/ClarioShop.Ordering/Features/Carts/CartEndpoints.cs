@@ -1,3 +1,6 @@
+using ClarioShop.Infrastructure.Tenancy;
+using ClarioShop.SharedKernel.Tenancy;
+
 namespace ClarioShop.Ordering.Features.Carts;
 
 /// <summary>Anonymous carts: whoever holds the cart id can use it, so the storefront keeps it like a session.</summary>
@@ -5,7 +8,7 @@ internal sealed class CartEndpoints : IEndpointGroup
 {
     public void Map(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/ordering/carts").WithTags("Ordering");
+        var group = app.MapGroup("/api/ordering/carts").WithTags("Ordering").RequirePlanFeature(PlanFeatures.OnlineStore);
 
         group.MapPost("/", static async (CreateCart.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(new CreateCart.Command(), cancellationToken))

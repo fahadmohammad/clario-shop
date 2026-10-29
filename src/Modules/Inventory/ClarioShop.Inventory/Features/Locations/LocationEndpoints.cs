@@ -1,4 +1,6 @@
+using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Inventory.Contracts;
+using ClarioShop.SharedKernel.Tenancy;
 
 namespace ClarioShop.Inventory.Features.Locations;
 
@@ -23,6 +25,7 @@ internal sealed class LocationEndpoints : IEndpointGroup
             .WithValidation<CreateLocation.Command>()
             .Produces<CreateLocation.Response>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status409Conflict)
-            .RequirePermission(InventoryPermissions.LocationsEdit);
+            .RequirePermission(InventoryPermissions.LocationsEdit)
+            .RequirePlanFeature(PlanFeatures.MultipleLocations);
     }
 }

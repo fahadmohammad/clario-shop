@@ -17,4 +17,8 @@ public static class TenancyRegistration
 
     public static IApplicationBuilder UseTenantResolution(this IApplicationBuilder app) =>
         app.UseMiddleware<TenantResolutionMiddleware>();
+
+    /// <summary>Enforces <see cref="PlanFeatureEndpointExtensions.RequirePlanFeature"/>. Goes after authorization.</summary>
+    public static IApplicationBuilder UsePlanGate(this IApplicationBuilder app) =>
+        app.UseMiddleware<PlanGateMiddleware>();
 }
