@@ -14,14 +14,6 @@ public static class CreateProduct
         string? Brand,
         IReadOnlyList<VariantInput> Variants);
 
-    public sealed record VariantInput(
-        string Sku,
-        string? Name,
-        decimal Price,
-        decimal? CompareAtPrice = null,
-        IReadOnlyList<string>? Barcodes = null,
-        bool SoldByWeight = false);
-
     public sealed record Response(Guid Id, string Slug, string Status);
 
     internal sealed class Validator : AbstractValidator<Command>
@@ -32,14 +24,7 @@ public static class CreateProduct
             RuleFor(command => command.Description).MaximumLength(10_000);
             RuleFor(command => command.Brand).MaximumLength(100);
             RuleFor(command => command.Variants).NotEmpty();
-            RuleForEach(command => command.Variants).ChildRules(variant =>
-            {
-                variant.RuleFor(v => v.Sku).NotEmpty().MaximumLength(64).Matches("^[A-Za-z0-9._-]+$")
-                    .WithMessage("SKU may contain letters, digits, dot, dash and underscore.");
-                variant.RuleFor(v => v.Name).MaximumLength(100);
-                variant.RuleFor(v => v.Price).GreaterThan(0).PrecisionScale(18, 2, ignoreTrailingZeros: true);
-                variant.RuleForEach(v => v.Barcodes).NotEmpty().MaximumLength(64);
-            });
+            RuleForEach(command => command.Variants).SetValidator(new VariantInputValidator());
         }
     }
 
@@ -56,7 +41,7 @@ public static class CreateProduct
             var takenSku = await db.Variants.Where(v => skus.Contains(v.Sku)).Select(v => v.Sku).FirstOrDefaultAsync(cancellationToken);
             if (takenSku is not null)
             {
-                return Error.Conflict("catalog.sku_taken", $"SKU {takenSku} is already used by another product.");
+                return CatalogErrors.SkuTaken(takenSku);
             }
 
             var now = clock.GetUtcNow();
@@ -67,7 +52,7 @@ public static class CreateProduct
                 command.Description,
                 command.CategoryId,
                 command.Brand,
-                command.Variants.Select(v => new VariantSpec(v.Sku, v.Name, v.Price, v.CompareAtPrice, v.Barcodes, v.SoldByWeight)).ToList(),
+                command.Variants.Select(v => v.ToSpec()).ToList(),
                 now);
             if (created.IsFailure)
             {

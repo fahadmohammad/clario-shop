@@ -1,6 +1,7 @@
 using ClarioShop.Catalog.Contracts;
 using ClarioShop.Catalog.Persistence;
 using ClarioShop.Catalog.Services;
+using ClarioShop.Infrastructure.Auditing;
 using ClarioShop.Infrastructure.Handlers;
 using ClarioShop.Infrastructure.Persistence;
 using ClarioShop.SharedKernel.Security;
@@ -15,6 +16,7 @@ public static class CatalogModule
         services.AddModuleHandlers(typeof(CatalogModule).Assembly);
         services.AddEndpointGroups(typeof(CatalogModule).Assembly);
 
+        services.AddAuditTrail();
         services.AddSingleton<IPermissionProvider, CatalogPermissionProvider>();
         services.AddScoped<SlugAllocator>();
         services.AddScoped<ICatalogQueries, CatalogQueries>();

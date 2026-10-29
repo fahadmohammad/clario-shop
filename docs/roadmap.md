@@ -132,11 +132,19 @@ choice is configuration later, never a blocker now.
   - Notifications consumes `StockWentNegative` and `StockDriftDetected` and tells the store's contact (email and SMS from Settings) in the store's language.
   - Done here: one alert per negative-stock event and one per drift check (not per corrected level); built-in Bangla and English text, not editable per store yet.
 
-### 13. catalog-completion
-- [ ] **Catalog for a real storefront**
-  - `Brand`, `ProductImage` (upload via an `IFileStorage` abstraction for S3-compatible storage; local-disk implementation for dev/tests), attributes and values, edit/archive product and variant, price changes publishing `ProductPriceChanged`.
-  - Price changes write a row to Catalog's own `AuditLog` (the 12c pattern: `AuditTrail` and `MapAuditLog` from Infrastructure), readable behind a `catalog.audit.view` permission.
-  - Inventory tracks variants added after creation (consume a `VariantAdded` event).
+### 13a. catalog-editing
+- [x] **Edit products and variants, audited price changes** — #26
+  - Edit and archive a product; add a variant (Inventory tracks it by consuming `VariantAdded`), rename it, replace its barcodes or take it off sale.
+  - Price changes publish `ProductPriceChanged` and write a row to Catalog's own `AuditLog` (the 12c pattern: `AuditTrail` and `MapAuditLog` from Infrastructure), readable behind a `catalog.audit.view` permission.
+
+### 13b. brands-attributes
+- [ ] **Brands and attributes**
+  - `Brand` (replacing the free-text brand on products), attributes and values on variants; storefront filter by brand.
+  - Staff product list with drafts and archived products, for the back office.
+
+### 13c. product-images
+- [ ] **Product images**
+  - `ProductImage` (upload via an `IFileStorage` abstraction for S3-compatible storage; local-disk implementation for dev/tests), ordering and a main image.
 
 ### 14. plans-and-scopes
 - [ ] **Plan gating and location scope**

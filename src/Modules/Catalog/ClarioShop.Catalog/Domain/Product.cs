@@ -13,6 +13,7 @@ internal sealed class Product : Entity
 
     public string Name { get; private set; } = string.Empty;
 
+    /// <summary>Set once at creation, so storefront links keep working when the product is renamed.</summary>
     public string Slug { get; private set; } = string.Empty;
 
     public string Description { get; private set; } = string.Empty;
@@ -26,6 +27,11 @@ internal sealed class Product : Entity
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset? PublishedAt { get; private set; }
+
+    public DateTimeOffset? ArchivedAt { get; private set; }
+
+    /// <summary>Concurrency token (PostgreSQL xmin).</summary>
+    public uint RowVersion { get; private set; }
 
     public IReadOnlyCollection<Variant> Variants => variants;
 
@@ -54,7 +60,7 @@ internal sealed class Product : Entity
         }
 
         var duplicateSku = variantSpecs
-            .GroupBy(spec => spec.Sku.Trim().ToUpperInvariant())
+            .GroupBy(spec => Variant.NormalizeSku(spec.Sku))
             .FirstOrDefault(group => group.Count() > 1);
         if (duplicateSku is not null)
         {
@@ -68,7 +74,7 @@ internal sealed class Product : Entity
             Slug = slug,
             Description = description?.Trim() ?? string.Empty,
             CategoryId = categoryId,
-            Brand = string.IsNullOrWhiteSpace(brand) ? null : brand.Trim(),
+            Brand = NormalizeBrand(brand),
             Status = ProductStatus.Draft,
             CreatedAt = now,
         };
@@ -98,4 +104,121 @@ internal sealed class Product : Entity
         PublishedAt = now;
         return Result.Success();
     }
+
+    /// <summary>Changes the shared content. The slug stays, so links already shared keep working.</summary>
+    public Result Edit(string name, string? description, Guid? categoryId, string? brand)
+    {
+        if (Status == ProductStatus.Archived)
+        {
+            return CatalogErrors.Archived;
+        }
+
+        Name = name.Trim();
+        Description = description?.Trim() ?? string.Empty;
+        CategoryId = categoryId;
+        Brand = NormalizeBrand(brand);
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Takes the product off the storefront for good. Its variants stay, so orders, stock and reports that point
+    /// at them keep their history; they are no longer sellable.
+    /// </summary>
+    public Result Archive(DateTimeOffset now)
+    {
+        if (Status == ProductStatus.Archived)
+        {
+            return Error.Conflict("catalog.already_archived", "The product is already archived.");
+        }
+
+        Status = ProductStatus.Archived;
+        ArchivedAt = now;
+        return Result.Success();
+    }
+
+    public Result<Variant> AddVariant(VariantSpec spec)
+    {
+        if (Status == ProductStatus.Archived)
+        {
+            return CatalogErrors.Archived;
+        }
+
+        var priceError = ValidatePrice(spec.Price, spec.CompareAtPrice);
+        if (priceError is not null)
+        {
+            return priceError;
+        }
+
+        var sku = Variant.NormalizeSku(spec.Sku);
+        if (variants.Any(variant => variant.Sku == sku))
+        {
+            return CatalogErrors.SkuTaken(sku);
+        }
+
+        var added = Variant.Create(Id, spec);
+        variants.Add(added);
+        return added;
+    }
+
+    /// <summary>Renames a variant, replaces its barcodes, or takes it off sale. Its SKU and unit never change.</summary>
+    public Result<Variant> UpdateVariant(Guid variantId, string? name, IReadOnlyList<string>? barcodes, bool isActive)
+    {
+        if (Status == ProductStatus.Archived)
+        {
+            return CatalogErrors.Archived;
+        }
+
+        var variant = variants.FirstOrDefault(v => v.Id == variantId);
+        if (variant is null)
+        {
+            return CatalogErrors.VariantNotFound;
+        }
+
+        if (!isActive && Status == ProductStatus.Published && !variants.Any(v => v.IsActive && v.Id != variantId))
+        {
+            return Error.Validation(
+                "isActive", "A published product needs an active variant. Archive the product to take it off the storefront.");
+        }
+
+        variant.Update(name, barcodes, isActive);
+        return variant;
+    }
+
+    public Result<PriceChange> ChangePrice(Guid variantId, decimal price, decimal? compareAtPrice)
+    {
+        if (Status == ProductStatus.Archived)
+        {
+            return CatalogErrors.Archived;
+        }
+
+        var variant = variants.FirstOrDefault(v => v.Id == variantId);
+        if (variant is null)
+        {
+            return CatalogErrors.VariantNotFound;
+        }
+
+        var priceError = ValidatePrice(price, compareAtPrice);
+        if (priceError is not null)
+        {
+            return priceError;
+        }
+
+        var change = new PriceChange(variant, variant.Price, variant.CompareAtPrice);
+        variant.SetPrice(price, compareAtPrice);
+        return change;
+    }
+
+    private static Error? ValidatePrice(decimal price, decimal? compareAtPrice)
+    {
+        if (price <= 0)
+        {
+            return Error.Validation("price", "The price must be above zero.");
+        }
+
+        return compareAtPrice is { } compare && compare <= price
+            ? Error.Validation("compareAtPrice", "A compare-at price must be higher than the price.")
+            : null;
+    }
+
+    private static string? NormalizeBrand(string? brand) => string.IsNullOrWhiteSpace(brand) ? null : brand.Trim();
 }
