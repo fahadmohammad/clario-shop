@@ -89,6 +89,17 @@ internal sealed class StockLevel : Entity
         Apply(sale);
     }
 
+    /// <summary>True when the level disagrees with what the ledger and the active reservations add up to.</summary>
+    public bool DriftsFrom(decimal ledgerOnHand, decimal heldReserved) => OnHand != ledgerOnHand || Reserved != heldReserved;
+
+    /// <summary>Sets the level back to the ledger's on-hand stock and what active reservations hold (the drift check).</summary>
+    public void Correct(decimal ledgerOnHand, decimal heldReserved, DateTimeOffset now)
+    {
+        OnHand = ledgerOnHand;
+        Reserved = heldReserved;
+        UpdatedAt = now;
+    }
+
     private void EnsureSameItem(StockMovement movement)
     {
         if (movement.VariantId != VariantId || movement.LocationId != LocationId)

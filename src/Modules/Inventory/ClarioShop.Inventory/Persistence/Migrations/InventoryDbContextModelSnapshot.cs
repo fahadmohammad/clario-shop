@@ -230,6 +230,49 @@ namespace ClarioShop.Inventory.Persistence.Migrations
                     b.ToTable("StockAdjustments", "inventory");
                 });
 
+            modelBuilder.Entity("ClarioShop.Inventory.Domain.StockDrift", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CheckId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("DetectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("HeldReserved")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<decimal>("LedgerOnHand")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("RecordedOnHand")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<decimal>("RecordedReserved")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<Guid>("VariantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DetectedAt");
+
+                    b.HasIndex("LocationId");
+
+                    b.ToTable("StockDrifts", "inventory");
+                });
+
             modelBuilder.Entity("ClarioShop.Inventory.Domain.StockLevel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -449,6 +492,15 @@ namespace ClarioShop.Inventory.Persistence.Migrations
                         });
 
                     b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("ClarioShop.Inventory.Domain.StockDrift", b =>
+                {
+                    b.HasOne("ClarioShop.Inventory.Domain.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ClarioShop.Inventory.Domain.StockLevel", b =>

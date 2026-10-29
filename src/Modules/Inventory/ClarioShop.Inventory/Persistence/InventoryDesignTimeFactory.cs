@@ -6,5 +6,5 @@ namespace ClarioShop.Inventory.Persistence;
 internal sealed class InventoryDesignTimeFactory : IDesignTimeDbContextFactory<InventoryDbContext>
 {
     public InventoryDbContext CreateDbContext(string[] args) =>
-        new(TenantDbContextRegistration.DesignTimeOptions<InventoryDbContext>(InventoryDbContext.SchemaName));
+        new(TenantDbContextRegistration.DesignTimeOptions<InventoryDbContext>(InventoryDbContext.SchemaName), TimeProvider.System);
 }
