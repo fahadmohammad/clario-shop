@@ -11,7 +11,7 @@ internal sealed class NotificationEndpoints : IEndpointGroup
         group.MapGet("/", static async ([AsParameters] ListNotifications.Query query, ListNotifications.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(query, cancellationToken)).ToHttpResult())
             .WithName("ListNotifications")
-            .WithSummary("SMS and email sent to shoppers, newest first, optionally for one order or in one status (e.g. Failed).")
+            .WithSummary("SMS and email sent to shoppers and stock alerts sent to the store, newest first, optionally for one order, of one kind (e.g. StockWentNegative) or in one status (e.g. Failed).")
             .WithValidation<ListNotifications.Query>()
             .Produces<ListNotifications.Response>()
             .RequirePermission(NotificationsPermissions.View);

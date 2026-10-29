@@ -6,7 +6,7 @@ namespace ClarioShop.Notifications.Services;
 /// <param name="Total">What the shopper pays; only known when the order is placed.</param>
 internal sealed record OrderNotification(
     Guid EventId,
-    OrderNotificationKind Kind,
+    NotificationKind Kind,
     Guid OrderId,
     string OrderNumber,
     Guid CustomerId,

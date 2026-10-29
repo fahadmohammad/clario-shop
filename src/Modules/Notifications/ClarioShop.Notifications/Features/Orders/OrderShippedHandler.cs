@@ -12,7 +12,7 @@ internal sealed class OrderShippedHandler(OrderNotifier notifier) : IIntegration
         notifier.NotifyAsync(
             new OrderNotification(
                 integrationEvent.EventId,
-                OrderNotificationKind.OrderShipped,
+                NotificationKind.OrderShipped,
                 integrationEvent.OrderId,
                 integrationEvent.OrderNumber,
                 integrationEvent.CustomerId),

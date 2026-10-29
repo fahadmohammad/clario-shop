@@ -90,7 +90,7 @@ internal sealed class OrderNotifier(
     }
 
     private static MessageTemplate TemplateFor(
-        OrderNotificationKind kind,
+        NotificationKind kind,
         NotificationChannel channel,
         string language,
         IReadOnlyList<NotificationTemplateInfo> storeTemplates)

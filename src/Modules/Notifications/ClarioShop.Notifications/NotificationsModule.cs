@@ -1,9 +1,11 @@
 using ClarioShop.Infrastructure.Handlers;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Persistence;
+using ClarioShop.Inventory.Contracts.Events;
 using ClarioShop.Notifications.Contracts;
 using ClarioShop.Notifications.Features.Orders;
 using ClarioShop.Notifications.Features.Retries;
+using ClarioShop.Notifications.Features.StockAlerts;
 using ClarioShop.Notifications.Persistence;
 using ClarioShop.Notifications.Services;
 using ClarioShop.Ordering.Contracts.Events;
@@ -24,6 +26,7 @@ public static class NotificationsModule
         services.Configure<NotificationOptions>(configuration.GetSection(NotificationOptions.SectionName));
         services.AddScoped<NotificationSender>();
         services.AddScoped<OrderNotifier>();
+        services.AddScoped<StaffAlerter>();
         services.AddSingleton<INotificationTemplateDefaults, NotificationTemplateDefaults>();
         services.AddScoped<NotificationRetry>();
         services.AddHostedService<NotificationRetryService>();
@@ -32,6 +35,8 @@ public static class NotificationsModule
         services.AddIntegrationEventHandler<OrderConfirmed, OrderConfirmedHandler, NotificationsDbContext>("notifications");
         services.AddIntegrationEventHandler<OrderShipped, OrderShippedHandler, NotificationsDbContext>("notifications");
         services.AddIntegrationEventHandler<OrderDelivered, OrderDeliveredHandler, NotificationsDbContext>("notifications");
+        services.AddIntegrationEventHandler<StockWentNegative, StockWentNegativeHandler, NotificationsDbContext>("notifications");
+        services.AddIntegrationEventHandler<StockDriftDetected, StockDriftDetectedHandler, NotificationsDbContext>("notifications");
         return services;
     }
 }
