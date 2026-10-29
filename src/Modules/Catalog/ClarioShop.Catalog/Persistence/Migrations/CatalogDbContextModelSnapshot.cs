@@ -62,6 +62,9 @@ namespace ClarioShop.Catalog.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Brand")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -84,6 +87,12 @@ namespace ClarioShop.Catalog.Persistence.Migrations
 
                     b.Property<DateTimeOffset?>("PublishedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -110,7 +119,6 @@ namespace ClarioShop.Catalog.Persistence.Migrations
             modelBuilder.Entity("ClarioShop.Catalog.Domain.Variant", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.PrimitiveCollection<List<string>>("Barcodes")
@@ -136,6 +144,12 @@ namespace ClarioShop.Catalog.Persistence.Migrations
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.Property<string>("Sku")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -156,6 +170,52 @@ namespace ClarioShop.Catalog.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Variants", "catalog");
+                });
+
+            modelBuilder.Entity("ClarioShop.Infrastructure.Auditing.AuditLogEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("After")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Before")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Device")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAt")
+                        .HasDatabaseName("IX_catalog_AuditLog_OccurredAt");
+
+                    b.HasIndex("EntityType", "EntityId")
+                        .HasDatabaseName("IX_catalog_AuditLog_Entity");
+
+                    b.ToTable("AuditLog", "catalog");
                 });
 
             modelBuilder.Entity("ClarioShop.Infrastructure.Persistence.InboxMessage", b =>

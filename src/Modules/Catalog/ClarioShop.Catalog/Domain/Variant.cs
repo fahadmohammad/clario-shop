@@ -28,18 +28,39 @@ internal sealed class Variant : Entity
 
     public bool IsActive { get; private set; }
 
+    /// <summary>Concurrency token (PostgreSQL xmin), so two price changes cannot both start from the same price.</summary>
+    public uint RowVersion { get; private set; }
+
+    internal static string NormalizeSku(string sku) => sku.Trim().ToUpperInvariant();
+
     internal static Variant Create(Guid productId, VariantSpec spec) => new()
     {
         Id = Guid.CreateVersion7(),
         ProductId = productId,
-        Sku = spec.Sku.Trim().ToUpperInvariant(),
+        Sku = NormalizeSku(spec.Sku),
         Name = spec.Name?.Trim() ?? string.Empty,
         Price = decimal.Round(spec.Price, 2),
         CompareAtPrice = spec.CompareAtPrice is { } compare ? decimal.Round(compare, 2) : null,
-        Barcodes = spec.Barcodes?.Select(code => code.Trim()).Where(code => code.Length > 0).Distinct().ToList() ?? [],
+        Barcodes = NormalizeBarcodes(spec.Barcodes),
         SoldByWeight = spec.SoldByWeight,
         IsActive = true,
     };
+
+    internal void Update(string? name, IReadOnlyList<string>? barcodes, bool isActive)
+    {
+        Name = name?.Trim() ?? string.Empty;
+        Barcodes = NormalizeBarcodes(barcodes);
+        IsActive = isActive;
+    }
+
+    internal void SetPrice(decimal price, decimal? compareAtPrice)
+    {
+        Price = decimal.Round(price, 2);
+        CompareAtPrice = compareAtPrice is { } compare ? decimal.Round(compare, 2) : null;
+    }
+
+    private static List<string> NormalizeBarcodes(IReadOnlyList<string>? barcodes) =>
+        barcodes?.Select(code => code.Trim()).Where(code => code.Length > 0).Distinct().ToList() ?? [];
 }
 
 internal sealed record VariantSpec(

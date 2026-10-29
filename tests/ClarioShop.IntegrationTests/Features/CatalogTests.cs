@@ -6,7 +6,7 @@ using ClarioShop.IntegrationTests.Infrastructure;
 namespace ClarioShop.IntegrationTests.Features;
 
 [Collection(ApiCollection.Name)]
-public sealed class CatalogTests(ClarioApiFactory api)
+public sealed partial class CatalogTests(ClarioApiFactory api)
 {
     private static CancellationToken Cancel => TestContext.Current.CancellationToken;
 

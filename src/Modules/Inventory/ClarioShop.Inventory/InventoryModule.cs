@@ -38,6 +38,7 @@ public static class InventoryModule
         services.AddHostedService<StockDriftCheckService>();
 
         services.AddIntegrationEventHandler<ProductCreated, ProductCreatedHandler, InventoryDbContext>("inventory");
+        services.AddIntegrationEventHandler<VariantAdded, VariantAddedHandler, InventoryDbContext>("inventory");
         services.AddIntegrationEventHandler<OrderConfirmed, OrderConfirmedHandler, InventoryDbContext>("inventory");
         services.AddIntegrationEventHandler<OrderCancelled, OrderCancelledHandler, InventoryDbContext>("inventory");
         return services;

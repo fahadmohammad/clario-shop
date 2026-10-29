@@ -1,4 +1,5 @@
 using ClarioShop.Catalog.Contracts.Events;
+using ClarioShop.Catalog.Domain;
 using ClarioShop.Catalog.Persistence;
 
 namespace ClarioShop.Catalog.Features.Products;
@@ -16,7 +17,7 @@ public static class PublishProduct
             var product = await db.Products.Include(p => p.Variants).SingleOrDefaultAsync(p => p.Id == command.ProductId, cancellationToken);
             if (product is null)
             {
-                return Error.NotFound("catalog.product_not_found", "The product does not exist.");
+                return CatalogErrors.ProductNotFound;
             }
 
             var now = clock.GetUtcNow();

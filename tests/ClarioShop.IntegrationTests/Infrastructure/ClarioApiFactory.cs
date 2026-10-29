@@ -179,6 +179,9 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
             services.AddSingleton<IEmailSender>(Email);
             services.AddScoped<IPaymentGateway>(_ => Gateway);
             services.AddIntegrationEventHandler<ProductCreated, RecordingProductCreatedHandler, CatalogDbContext>("tests");
+            services.AddIntegrationEventHandler<VariantAdded, RecordingHandler<VariantAdded>, CatalogDbContext>("tests");
+            services.AddIntegrationEventHandler<ProductPriceChanged, RecordingHandler<ProductPriceChanged>, CatalogDbContext>("tests");
+            services.AddIntegrationEventHandler<ProductArchived, RecordingHandler<ProductArchived>, CatalogDbContext>("tests");
             services.AddIntegrationEventHandler<CustomerCreated, RecordingCustomerCreatedHandler, CustomersDbContext>("tests");
             services.AddIntegrationEventHandler<OrderPlaced, RecordingOrderPlacedHandler, OrderingDbContext>("tests");
             services.AddIntegrationEventHandler<OrderConfirmed, RecordingHandler<OrderConfirmed>, OrderingDbContext>("tests");

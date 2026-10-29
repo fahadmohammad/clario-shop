@@ -133,7 +133,7 @@ choice is configuration later, never a blocker now.
   - Done here: one alert per negative-stock event and one per drift check (not per corrected level); built-in Bangla and English text, not editable per store yet.
 
 ### 13a. catalog-editing
-- [~] **Edit products and variants, audited price changes**
+- [x] **Edit products and variants, audited price changes** — #26
   - Edit and archive a product; add a variant (Inventory tracks it by consuming `VariantAdded`), rename it, replace its barcodes or take it off sale.
   - Price changes publish `ProductPriceChanged` and write a row to Catalog's own `AuditLog` (the 12c pattern: `AuditTrail` and `MapAuditLog` from Infrastructure), readable behind a `catalog.audit.view` permission.
 
