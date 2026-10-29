@@ -151,7 +151,7 @@ choice is configuration later, never a blocker now.
   - `ProductImage` (upload via an `IFileStorage` abstraction for S3-compatible storage; local-disk implementation for dev/tests), ordering and a main image.
 
 ### 14a. plan-gating
-- [~] **Tenant plans and plan gating**
+- [x] **Tenant plans and plan gating** — #30
   - Platform: tenant plan (Online, POS, Retail Suite) with module feature flags; endpoints of a module outside the plan return 403 with a clear reason.
   - Platform admin sets a tenant's plan; the storefront settings tell the apps which features the shop has.
 
