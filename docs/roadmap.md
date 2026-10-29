@@ -123,7 +123,7 @@ choice is configuration later, never a blocker now.
   - Stock transfers between locations (`TransferOut`/`TransferIn`, one document).
 
 ### 12c. audit-log
-- [ ] **Audit log**
+- [~] **Audit log**
   - `AuditLog` (who, what, before/after, when) for adjustments, price changes and role changes — a small per-module table, not a shared one.
 
 ### 12d. staff-alerts
