@@ -26,6 +26,15 @@ internal static class ProductSaving
         {
             return CatalogErrors.Concurrency;
         }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: "PK_VariantAttributeValues",
+        })
+        {
+            // Two changes gave the same variant a value for the same attribute at once.
+            return CatalogErrors.Concurrency;
+        }
         catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             // Only a new variant can break the unique SKU index; another product took the SKU since we checked.

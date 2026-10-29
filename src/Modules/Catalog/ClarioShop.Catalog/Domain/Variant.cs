@@ -5,6 +5,8 @@ namespace ClarioShop.Catalog.Domain;
 /// <summary>The sellable unit: one SKU, one price. Orders, POS sales and stock all point at a variant.</summary>
 internal sealed class Variant : Entity
 {
+    private readonly List<VariantAttributeValue> attributeValues = [];
+
     private Variant()
     {
     }
@@ -31,32 +33,67 @@ internal sealed class Variant : Entity
     /// <summary>Concurrency token (PostgreSQL xmin), so two price changes cannot both start from the same price.</summary>
     public uint RowVersion { get; private set; }
 
+    /// <summary>The variant's value for each attribute it has, e.g. Size: M and Colour: Red.</summary>
+    public IReadOnlyCollection<VariantAttributeValue> AttributeValues => attributeValues;
+
     internal static string NormalizeSku(string sku) => sku.Trim().ToUpperInvariant();
 
-    internal static Variant Create(Guid productId, VariantSpec spec) => new()
+    internal static Variant Create(Guid productId, VariantSpec spec)
     {
-        Id = Guid.CreateVersion7(),
-        ProductId = productId,
-        Sku = NormalizeSku(spec.Sku),
-        Name = spec.Name?.Trim() ?? string.Empty,
-        Price = decimal.Round(spec.Price, 2),
-        CompareAtPrice = spec.CompareAtPrice is { } compare ? decimal.Round(compare, 2) : null,
-        Barcodes = NormalizeBarcodes(spec.Barcodes),
-        SoldByWeight = spec.SoldByWeight,
-        IsActive = true,
-    };
+        var variant = new Variant
+        {
+            Id = Guid.CreateVersion7(),
+            ProductId = productId,
+            Sku = NormalizeSku(spec.Sku),
+            Name = spec.Name?.Trim() ?? string.Empty,
+            Price = decimal.Round(spec.Price, 2),
+            CompareAtPrice = spec.CompareAtPrice is { } compare ? decimal.Round(compare, 2) : null,
+            Barcodes = NormalizeBarcodes(spec.Barcodes),
+            SoldByWeight = spec.SoldByWeight,
+            IsActive = true,
+        };
+        variant.attributeValues.AddRange((spec.AttributeValues ?? []).Select(VariantAttributeValue.Create));
+        return variant;
+    }
 
-    internal void Update(string? name, IReadOnlyList<string>? barcodes, bool isActive)
+    /// <summary>Value ids sorted, so two variants with the same values compare equal; empty without attributes.</summary>
+    internal static string CombinationKey(IEnumerable<Guid> valueIds) => string.Join(',', valueIds.Order());
+
+    internal string CombinationKey() => CombinationKey(attributeValues.Select(value => value.AttributeValueId));
+
+    internal void Update(string? name, IReadOnlyList<string>? barcodes, bool isActive, IReadOnlyList<AttributeValueRef> values)
     {
         Name = name?.Trim() ?? string.Empty;
         Barcodes = NormalizeBarcodes(barcodes);
         IsActive = isActive;
+        SetAttributeValues(values);
     }
 
     internal void SetPrice(decimal price, decimal? compareAtPrice)
     {
         Price = decimal.Round(price, 2);
         CompareAtPrice = compareAtPrice is { } compare ? decimal.Round(compare, 2) : null;
+    }
+
+    /// <summary>
+    /// Changes the rows in place rather than replacing them, so EF Core updates a changed value instead of deleting
+    /// and re-adding a row with the same key.
+    /// </summary>
+    private void SetAttributeValues(IReadOnlyList<AttributeValueRef> values)
+    {
+        attributeValues.RemoveAll(current => values.All(value => value.AttributeId != current.AttributeId));
+        foreach (var value in values)
+        {
+            var current = attributeValues.FirstOrDefault(existing => existing.AttributeId == value.AttributeId);
+            if (current is null)
+            {
+                attributeValues.Add(VariantAttributeValue.Create(value));
+            }
+            else
+            {
+                current.Change(value.ValueId);
+            }
+        }
     }
 
     private static List<string> NormalizeBarcodes(IReadOnlyList<string>? barcodes) =>
@@ -69,4 +106,5 @@ internal sealed record VariantSpec(
     decimal Price,
     decimal? CompareAtPrice,
     IReadOnlyList<string>? Barcodes,
-    bool SoldByWeight);
+    bool SoldByWeight,
+    IReadOnlyList<AttributeValueRef>? AttributeValues = null);

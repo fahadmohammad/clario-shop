@@ -113,7 +113,7 @@ public sealed class ProductEditingTests
         product.Publish(Now);
         var variant = product.Variants.Single();
 
-        var result = product.UpdateVariant(variant.Id, variant.Name, null, isActive: false);
+        var result = product.UpdateVariant(variant.Id, variant.Name, null, isActive: false, []);
 
         Assert.Equal(ErrorType.Validation, result.Error.Type);
         Assert.True(variant.IsActive);
@@ -126,7 +126,7 @@ public sealed class ProductEditingTests
         var second = product.AddVariant(new VariantSpec("RICE-5KG", "5 kg", 790m, null, null, false)).Value;
         product.Publish(Now);
 
-        var result = product.UpdateVariant(second.Id, "5 kg bag", ["111", "111"], isActive: false);
+        var result = product.UpdateVariant(second.Id, "5 kg bag", ["111", "111"], isActive: false, []);
 
         Assert.True(result.IsSuccess);
         Assert.False(second.IsActive);
@@ -140,7 +140,7 @@ public sealed class ProductEditingTests
         var product = Create();
         var variant = product.Variants.Single();
 
-        var result = product.UpdateVariant(variant.Id, null, null, isActive: false);
+        var result = product.UpdateVariant(variant.Id, null, null, isActive: false, []);
 
         Assert.True(result.IsSuccess);
         Assert.False(variant.IsActive);
@@ -151,7 +151,7 @@ public sealed class ProductEditingTests
     {
         var product = Create();
 
-        var result = product.UpdateVariant(Guid.CreateVersion7(), null, null, isActive: true);
+        var result = product.UpdateVariant(Guid.CreateVersion7(), null, null, isActive: true, []);
 
         Assert.Equal(ErrorType.NotFound, result.Error.Type);
     }
