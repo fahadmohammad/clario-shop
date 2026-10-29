@@ -13,6 +13,7 @@ internal sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.HasIndex(tenant => tenant.Identifier).IsUnique();
         builder.Property(tenant => tenant.Name).HasMaxLength(150);
         builder.Property(tenant => tenant.ConnectionString).HasMaxLength(1000);
+        builder.Property(tenant => tenant.Plan).HasConversion<string>().HasMaxLength(20);
 
         builder.HasMany(tenant => tenant.Hosts).WithOne().HasForeignKey(host => host.TenantId).OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(tenant => tenant.Hosts).UsePropertyAccessMode(PropertyAccessMode.Field);

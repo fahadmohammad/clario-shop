@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using ClarioShop.Customers.Features.Addresses;
 using ClarioShop.Customers.Features.Customers;
+using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.SharedKernel.Tenancy;
 
 namespace ClarioShop.Customers.Features.Shoppers;
@@ -13,7 +14,7 @@ internal sealed class MyAccountEndpoints : IEndpointGroup
 {
     public void Map(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/customers/me").WithTags("My account").RequireShopper();
+        var group = app.MapGroup("/api/customers/me").WithTags("My account").RequireShopper().RequirePlanFeature(PlanFeatures.OnlineStore);
 
         group.MapGet("/", static async (ClaimsPrincipal user, ITenantContext tenant, GetCustomer.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(new GetCustomer.Query(Me(user, tenant)), cancellationToken)).ToHttpResult())

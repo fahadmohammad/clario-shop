@@ -72,6 +72,7 @@ app.UseCors();
 app.UseTenantResolution();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UsePlanGate();
 app.UseRateLimiter();
 
 app.MapDefaultEndpoints();

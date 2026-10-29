@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Ordering.Features.Orders;
 using ClarioShop.SharedKernel.Tenancy;
 
@@ -20,6 +21,7 @@ internal sealed class CheckoutEndpoints : IEndpointGroup
             .Produces<OrderDetails>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict)
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequirePlanFeature(PlanFeatures.OnlineStore);
     }
 }

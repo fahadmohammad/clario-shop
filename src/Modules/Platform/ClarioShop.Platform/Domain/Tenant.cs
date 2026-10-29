@@ -20,11 +20,13 @@ internal sealed class Tenant : Entity
 
     public bool IsActive { get; private set; }
 
+    public TenantPlan Plan { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public IReadOnlyCollection<TenantHost> Hosts => hosts;
 
-    public static Tenant Create(string identifier, string name, string connectionString, IEnumerable<string> hostNames, DateTimeOffset now)
+    public static Tenant Create(string identifier, string name, string connectionString, IEnumerable<string> hostNames, TenantPlan plan, DateTimeOffset now)
     {
         var tenant = new Tenant
         {
@@ -33,6 +35,7 @@ internal sealed class Tenant : Entity
             Name = name.Trim(),
             ConnectionString = connectionString,
             IsActive = false,
+            Plan = plan,
             CreatedAt = now,
         };
 
@@ -42,4 +45,6 @@ internal sealed class Tenant : Entity
 
     /// <summary>Called once the tenant database is migrated and the owner account exists.</summary>
     public void Activate() => IsActive = true;
+
+    public void ChangePlan(TenantPlan plan) => Plan = plan;
 }

@@ -1,5 +1,7 @@
+using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Payments.Domain;
 using ClarioShop.Payments.Gateways.SslCommerz;
+using ClarioShop.SharedKernel.Tenancy;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 
@@ -32,7 +34,8 @@ internal sealed class GatewayEndpoints : IEndpointGroup
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequirePlanFeature(PlanFeatures.OnlineStore);
 
         // SSLCommerz posts form fields to these. The gateway and the shopper's browser are not signed in; nothing is
         // trusted until the gateway's validation API confirms it.

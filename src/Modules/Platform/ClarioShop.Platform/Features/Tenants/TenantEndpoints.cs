@@ -25,5 +25,13 @@ internal sealed class TenantEndpoints : IEndpointGroup
                 (await handler.HandleAsync(new ListTenants.Query(), cancellationToken)).ToHttpResult())
             .WithName("ListTenants")
             .Produces<IReadOnlyList<ListTenants.TenantItem>>();
+
+        group.MapPut("/{identifier}/plan", static async (string identifier, ChangeTenantPlan.Request request, ChangeTenantPlan.Handler handler, CancellationToken cancellationToken) =>
+                (await handler.HandleAsync(new ChangeTenantPlan.Command(identifier, request.Plan), cancellationToken)).ToHttpResult())
+            .WithName("ChangeTenantPlan")
+            .WithSummary("Move a shop to another plan (Online, Pos, RetailSuite). Endpoints outside the new plan answer 403 within a minute on every server.")
+            .WithValidation<ChangeTenantPlan.Request>()
+            .Produces<ChangeTenantPlan.Response>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

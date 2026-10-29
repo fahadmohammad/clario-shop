@@ -11,7 +11,7 @@ White-label retail platform for Bangladeshi businesses: an online store and a su
 | --- | --- |
 | Modular monolith on .NET 10, vertical slices, module boundaries enforced by tests | Done |
 | Multi-tenancy: host-name resolution, one PostgreSQL database per tenant, per-tenant migrations | Done |
-| Tenant provisioning API (database, schemas, system roles, owner account) | Done |
+| Tenant provisioning API (database, schemas, system roles, owner account); plans (Online, POS, Retail Suite) the platform admin sets per shop, whose features gate endpoints with a 403 that says what the plan lacks: online store (carts, checkout, orders, their payments, shopper accounts), POS, more than one location; the storefront settings list the shop's features | Done |
 | Identity: OpenIddict token server (staff email + password, shopper phone OTP linked to the customer by phone, 15-minute access tokens, rotating refresh tokens stored per tenant), permission-based RBAC, seeded Owner, Catalog Manager and Inventory Clerk roles; staff roles can be changed (the shop's last active Owner keeps the role), and every staff account created and role change is in Identity's audit log | Done (SSO follows) |
 | Catalog: categories, products, variants with barcodes and sold-by-weight, publish, storefront reads; edit and archive products, add, rename or take variants off sale (Inventory tracks added variants), price changes published as `ProductPriceChanged` and kept in Catalog's audit log; brands with a storefront brand filter and a back-office product list; variant attributes (Size, Colour …) whose values each variant picks and the product page offers; product image galleries (JPEG, PNG, WebP or AVIF, checked by content) with a main image, stored through `IFileStorage` (local disk until object storage is configured) | Done (search follows) |
 | Inventory: default location per tenant, append-only stock ledger, stock levels with optimistic concurrency, 15-minute checkout reservations, purchase receipts, adjustments with reason codes, a reorder level per variant (or a store-wide default), stock transfers between locations (one document, `TransferOut` and `TransferIn` saved together), a nightly drift check that recomputes stock levels from the ledger and records and corrects any that drifted, a `StockWentNegative` event when stock crosses below zero; an audit log of every adjustment (who, from which device, stock on hand before and after) | Done (POS sales follow) |
@@ -78,8 +78,9 @@ X-Platform-Key: <platform-api-key parameter>
   "hosts": ["shop.rahmanstore.com.bd"],
   "ownerEmail": "owner@rahmanstore.com.bd",
   "ownerName": "Abdur Rahman",
-  "ownerPassword": "a-strong-password-1"
+  "ownerPassword": "a-strong-password-1",
+  "plan": "Online"
 }
 ```
 
-This creates the `clarioshop_rahman_store` database with every module's schema, the system roles and the owner account. Requests to `shop.rahmanstore.com.bd` are then served from that database.
+This creates the `clarioshop_rahman_store` database with every module's schema, the system roles and the owner account. Requests to `shop.rahmanstore.com.bd` are then served from that database. `plan` is `Online`, `Pos` or `RetailSuite` (the default); change it later with `PUT /api/platform/tenants/rahman-store/plan` and `{ "plan": "RetailSuite" }`.

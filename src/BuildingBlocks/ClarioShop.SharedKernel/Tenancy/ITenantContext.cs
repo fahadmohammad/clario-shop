@@ -10,4 +10,7 @@ public interface ITenantContext
     string Identifier { get; }
 
     string ConnectionString { get; }
+
+    /// <summary>What the tenant's plan includes.</summary>
+    PlanFeatures Features { get; }
 }

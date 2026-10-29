@@ -15,6 +15,8 @@ public sealed class TenantContext : ITenantContext
 
     public string ConnectionString => Current.ConnectionString;
 
+    public PlanFeatures Features => Current.Features;
+
     public TenantInfo Current => tenant ?? throw new InvalidOperationException("No tenant has been resolved for this scope.");
 
     public void Set(TenantInfo value)

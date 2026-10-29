@@ -10,9 +10,10 @@ public static class CreateTenant
         IReadOnlyList<string> Hosts,
         string OwnerEmail,
         string OwnerName,
-        string OwnerPassword);
+        string OwnerPassword,
+        TenantPlan? Plan = null);
 
-    public sealed record Response(Guid Id, string Identifier, string Name);
+    public sealed record Response(Guid Id, string Identifier, string Name, TenantPlan Plan);
 
     internal sealed class Validator : AbstractValidator<Command>
     {
@@ -29,6 +30,7 @@ public static class CreateTenant
             RuleFor(command => command.OwnerPassword).NotEmpty().MinimumLength(8)
                 .Matches("[A-Za-z]").WithMessage("Password must contain a letter.")
                 .Matches("[0-9]").WithMessage("Password must contain a digit.");
+            RuleFor(command => command.Plan).IsInEnum();
         }
     }
 
@@ -36,12 +38,14 @@ public static class CreateTenant
     {
         public async Task<Result<Response>> HandleAsync(Command command, CancellationToken cancellationToken)
         {
+            // Without a plan a shop gets everything, as every shop had before plans existed.
+            var plan = command.Plan ?? TenantPlan.RetailSuite;
             var result = await provisioner.ProvisionAsync(
-                new TenantRequest(command.Identifier, command.Name, command.Hosts, command.OwnerEmail, command.OwnerName, command.OwnerPassword),
+                new TenantRequest(command.Identifier, command.Name, command.Hosts, command.OwnerEmail, command.OwnerName, command.OwnerPassword, plan),
                 cancellationToken);
 
             return result.IsSuccess
-                ? new Response(result.Value.Id, result.Value.Identifier, result.Value.Name)
+                ? new Response(result.Value.Id, result.Value.Identifier, result.Value.Name, plan)
                 : result.Error;
         }
     }

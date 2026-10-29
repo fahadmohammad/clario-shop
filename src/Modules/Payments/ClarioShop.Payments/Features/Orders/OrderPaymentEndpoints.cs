@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using ClarioShop.Infrastructure.Tenancy;
 using ClarioShop.Payments.Contracts;
 using ClarioShop.Payments.Services;
+using ClarioShop.SharedKernel.Tenancy;
 
 namespace ClarioShop.Payments.Features.Orders;
 
@@ -8,7 +10,7 @@ internal sealed class OrderPaymentEndpoints : IEndpointGroup
 {
     public void Map(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/payments/orders").WithTags("Payments");
+        var group = app.MapGroup("/api/payments/orders").WithTags("Payments").RequirePlanFeature(PlanFeatures.OnlineStore);
 
         group.MapGet("/{orderId:guid}", static async (Guid orderId, GetOrderPayments.Handler handler, CancellationToken cancellationToken) =>
                 (await handler.HandleAsync(new GetOrderPayments.Query(orderId), cancellationToken)).ToHttpResult())
