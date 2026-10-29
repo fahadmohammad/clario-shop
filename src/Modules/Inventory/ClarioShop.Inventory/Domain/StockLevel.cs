@@ -59,6 +59,27 @@ internal sealed class StockLevel : Entity
         return Result.Success();
     }
 
+    /// <summary>
+    /// Sends stock to another location. Only available stock may leave: stock held for online orders stays, and a
+    /// transfer never takes on-hand stock below zero.
+    /// </summary>
+    public Result ApplyTransferOut(StockMovement movement)
+    {
+        EnsureSameItem(movement);
+        if (movement.Type != MovementType.TransferOut)
+        {
+            throw new InvalidOperationException("Only a TransferOut movement can be applied as a transfer out.");
+        }
+
+        if (Available < -movement.Quantity)
+        {
+            return InventoryErrors.InsufficientStock(VariantId, Math.Max(Available, 0), -movement.Quantity);
+        }
+
+        Apply(movement);
+        return Result.Success();
+    }
+
     public Result Reserve(decimal quantity, DateTimeOffset now)
     {
         if (quantity <= 0)

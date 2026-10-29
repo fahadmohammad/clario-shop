@@ -86,6 +86,58 @@ public sealed class StockDocumentTests
     }
 
     [Fact]
+    public void StockTransfer_ToMovements_PairsTransferOutAtSourceWithTransferInAtDestination()
+    {
+        var destination = Guid.CreateVersion7();
+        var transfer = StockTransfer.Create(LocationId, destination, " Weekly restock ", [(Rice, 5m), (Oil, 1.5m)], Now, UserId).Value;
+
+        var movements = transfer.ToMovements();
+
+        Assert.Equal("Weekly restock", transfer.Note);
+        Assert.Equal(2, movements.Count);
+        Assert.All(movements, pair =>
+        {
+            Assert.Equal((MovementType.TransferOut, LocationId), (pair.Out.Type, pair.Out.LocationId));
+            Assert.Equal((MovementType.TransferIn, destination), (pair.In.Type, pair.In.LocationId));
+            Assert.Equal(pair.Out.VariantId, pair.In.VariantId);
+            Assert.Equal(-pair.Out.Quantity, pair.In.Quantity);
+            Assert.All([pair.Out, pair.In], m =>
+            {
+                Assert.Equal(("StockTransfer", transfer.Id), (m.ReferenceType, m.ReferenceId));
+                Assert.Equal((Now, UserId), (m.RecordedAt, m.UserId));
+                Assert.Null(m.UnitCost);
+            });
+        });
+        Assert.Equal(-1.5m, movements.Single(pair => pair.Out.VariantId == Oil).Out.Quantity);
+    }
+
+    [Fact]
+    public void StockTransfer_SameLocation_ReturnsValidationError()
+    {
+        var result = StockTransfer.Create(LocationId, LocationId, null, [(Rice, 1m)], Now, UserId);
+
+        Assert.Equal("toLocationId", Assert.Single(result.Error.ValidationErrors!).Key);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-2)]
+    public void StockTransfer_QuantityNotAboveZero_ReturnsValidationError(decimal quantity)
+    {
+        var result = StockTransfer.Create(LocationId, Guid.CreateVersion7(), null, [(Rice, quantity)], Now, UserId);
+
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
+    }
+
+    [Fact]
+    public void StockTransfer_DuplicateVariant_ReturnsValidationError()
+    {
+        var result = StockTransfer.Create(LocationId, Guid.CreateVersion7(), null, [(Rice, 1m), (Rice, 2m)], Now, UserId);
+
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
+    }
+
+    [Fact]
     public void Location_CreateDefault_IsDefaultMainLocation()
     {
         var location = Location.CreateDefault(Now);

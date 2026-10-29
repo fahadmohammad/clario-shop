@@ -427,7 +427,7 @@ public sealed partial class InventoryTests(ClarioApiFactory api)
 
     private sealed record AdjustmentResponse(Guid Id, string Reason, IReadOnlyList<LevelItem> Levels);
 
-    private sealed record MovementItem(Guid Id, decimal Quantity, string Type, string? Reason, string ReferenceType, Guid ReferenceId, Guid? UserId, decimal? UnitCost);
+    private sealed record MovementItem(Guid Id, Guid LocationId, decimal Quantity, string Type, string? Reason, string ReferenceType, Guid ReferenceId, Guid? UserId, decimal? UnitCost);
 
     private sealed record MovementPage(IReadOnlyList<MovementItem> Items, int TotalCount);
 }

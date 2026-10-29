@@ -10,6 +10,7 @@ internal sealed class InventoryPermissionProvider : IPermissionProvider
         new(InventoryPermissions.StockView, "inventory", "View stock levels, locations and the stock ledger"),
         new(InventoryPermissions.Receive, "inventory", "Record goods received from suppliers"),
         new(InventoryPermissions.Adjust, "inventory", "Adjust stock for damage, expiry, theft or count corrections"),
+        new(InventoryPermissions.Transfer, "inventory", "Transfer stock between locations"),
         new(InventoryPermissions.LocationsEdit, "inventory", "Create and edit stock locations"),
     ];
 }

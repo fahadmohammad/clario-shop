@@ -5,7 +5,7 @@ namespace ClarioShop.Inventory.Services;
 
 /// <summary>
 /// Runs a load-change-save operation and retries it when another request changed the same stock rows
-/// first (RowVersion mismatch or, in a repeatable-read transaction, a serialization failure) or created the same
+/// first (RowVersion mismatch, a deadlock or, in a repeatable-read transaction, a serialization failure) or created the same
 /// row (unique violation). The operation must do all its reads inside the delegate, because the change tracker is
 /// cleared before each retry.
 /// </summary>
@@ -46,7 +46,7 @@ internal static class ConcurrencyRetry
 
     private static bool IsConflict(DbUpdateException exception) =>
         exception is DbUpdateConcurrencyException
-        || exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation or PostgresErrorCodes.SerializationFailure };
+        || exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation or PostgresErrorCodes.SerializationFailure or PostgresErrorCodes.DeadlockDetected };
 
     private static TimeSpan Backoff(int attempt) =>
         TimeSpan.FromMilliseconds(Random.Shared.Next(5, 20) * attempt);
