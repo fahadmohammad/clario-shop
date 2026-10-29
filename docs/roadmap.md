@@ -114,7 +114,7 @@ choice is configuration later, never a blocker now.
   - Permission `reports.inventory.view`.
 
 ### 12a. stock-alerts
-- [~] **Stock drift check and negative-stock event**
+- [x] **Stock drift check and negative-stock event** — #22
   - Nightly drift check: recompute `StockLevel` from the ledger, record and alert on differences.
   - Negative-stock alerts surfaced through an event Notifications can consume.
 

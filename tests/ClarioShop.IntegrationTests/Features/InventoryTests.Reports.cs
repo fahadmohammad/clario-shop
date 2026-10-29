@@ -215,13 +215,18 @@ public sealed partial class InventoryTests
     {
         await using var scope = await api.CreateTenantScopeAsync(tenant.Identifier);
         var db = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
-        var now = DateTimeOffset.UtcNow;
-        var location = await db.Locations.Where(l => l.IsDefault).Select(l => l.Id).SingleAsync(Cancel);
-        var levels = await db.LoadOrCreateAsync(location, [variantId], now, Cancel);
-        var sale = StockMovement.Record(variantId, location, MovementType.PosSale, -quantity, new StockReference("PosSale", Guid.CreateVersion7()), now, now, null).Value;
-        db.Movements.Add(sale);
-        levels[variantId].Apply(sale);
-        await db.SaveChangesAsync(Cancel);
+        var saved = await ConcurrencyRetry.ExecuteAsync<bool>(db, async ct =>
+        {
+            var now = DateTimeOffset.UtcNow;
+            var location = await db.Locations.Where(l => l.IsDefault).Select(l => l.Id).SingleAsync(ct);
+            var levels = await db.LoadOrCreateAsync(location, [variantId], now, ct);
+            var sale = StockMovement.Record(variantId, location, MovementType.PosSale, -quantity, new StockReference("PosSale", Guid.CreateVersion7()), now, now, null).Value;
+            db.Movements.Add(sale);
+            levels[variantId].Apply(sale);
+            await db.SaveChangesAsync(ct);
+            return true;
+        }, Cancel);
+        Assert.True(saved.IsSuccess);
     }
 
     private sealed record ReorderLevelResponse(Guid VariantId, string Sku, decimal? ReorderLevel);

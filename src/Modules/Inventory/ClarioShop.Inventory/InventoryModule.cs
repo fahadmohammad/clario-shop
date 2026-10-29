@@ -30,8 +30,10 @@ public static class InventoryModule
         services.AddScoped<InventoryReservations>();
         services.AddScoped<IInventoryReservations>(provider => provider.GetRequiredService<InventoryReservations>());
         services.AddScoped<IInventoryQueries, InventoryQueries>();
+        services.AddScoped<StockDriftCheck>();
         services.AddScoped<ITenantInitializer, DefaultLocationInitializer>();
         services.AddHostedService<ReservationExpiryService>();
+        services.AddHostedService<StockDriftCheckService>();
 
         services.AddIntegrationEventHandler<ProductCreated, ProductCreatedHandler, InventoryDbContext>("inventory");
         services.AddIntegrationEventHandler<OrderConfirmed, OrderConfirmedHandler, InventoryDbContext>("inventory");

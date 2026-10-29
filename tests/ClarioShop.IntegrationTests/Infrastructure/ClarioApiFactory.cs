@@ -9,6 +9,8 @@ using ClarioShop.Infrastructure.Email;
 using ClarioShop.Infrastructure.Messaging;
 using ClarioShop.Infrastructure.Sms;
 using ClarioShop.Infrastructure.Tenancy;
+using ClarioShop.Inventory.Contracts.Events;
+using ClarioShop.Inventory.Persistence;
 using ClarioShop.Ordering.Contracts.Events;
 using ClarioShop.Ordering.Persistence;
 using ClarioShop.Payments.Contracts.Events;
@@ -165,6 +167,8 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
         builder.UseSetting("Messaging:OutboxPollInterval", "00:00:00.200");
         // Tests run the notification retry job themselves, at chosen times; the timer must not race them.
         builder.UseSetting("Notifications:RetryInterval", "01:00:00");
+        // Tests run the drift check through its endpoint; a nightly run during CI must not correct their stock first.
+        builder.UseSetting("Inventory:DriftCheckEnabled", "false");
         // Low enough that a test reaches it quickly; every test uses its own shop, so the counts never collide.
         builder.UseSetting("Auth:Otp:RequestsPerAddress", "5");
 
@@ -183,6 +187,7 @@ public sealed class ClarioApiFactory : WebApplicationFactory<Program>, IAsyncLif
             services.AddIntegrationEventHandler<OrderDelivered, RecordingHandler<OrderDelivered>, OrderingDbContext>("tests");
             services.AddIntegrationEventHandler<PaymentSucceeded, RecordingHandler<PaymentSucceeded>, PaymentsDbContext>("tests");
             services.AddIntegrationEventHandler<PaymentFailed, RecordingHandler<PaymentFailed>, PaymentsDbContext>("tests");
+            services.AddIntegrationEventHandler<StockWentNegative, RecordingHandler<StockWentNegative>, InventoryDbContext>("tests");
         });
     }
 

@@ -123,6 +123,37 @@ public sealed class StockLevelTests
         Assert.Equal(3, level.OnHand);
     }
 
+    [Fact]
+    public void DriftsFrom_MatchingLedgerAndHolds_IsFalse()
+    {
+        var level = WithStock(4);
+        level.Reserve(1, Now);
+
+        Assert.False(level.DriftsFrom(ledgerOnHand: 4, heldReserved: 1));
+    }
+
+    [Theory]
+    [InlineData(5, 1)]
+    [InlineData(4, 0)]
+    public void DriftsFrom_OnHandOrReservedDiffers_IsTrue(decimal ledgerOnHand, decimal heldReserved)
+    {
+        var level = WithStock(4);
+        level.Reserve(1, Now);
+
+        Assert.True(level.DriftsFrom(ledgerOnHand, heldReserved));
+    }
+
+    [Fact]
+    public void Correct_SetsOnHandAndReservedToTheLedger()
+    {
+        var level = WithStock(4);
+        level.Reserve(1, Now);
+
+        level.Correct(ledgerOnHand: 7, heldReserved: 2, Now.AddDays(1));
+
+        Assert.Equal((7m, 2m, 5m, Now.AddDays(1)), (level.OnHand, level.Reserved, level.Available, level.UpdatedAt));
+    }
+
     private static StockLevel WithStock(decimal onHand)
     {
         var level = StockLevel.Create(VariantId, LocationId, Now);
